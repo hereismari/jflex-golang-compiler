@@ -13,6 +13,14 @@ A Golang compiler implementation.
 
 * Eclipse 4.X
 
+## Installing JFlex + Cup
+
+1. [Download flex + cup](http://jflex.de/download.html)
+2. Follow the [installation steps](http://jflex.de/installing.html)
+3. Create a new Java project on Eclipse
+4. Add jflex to the project:  
+`Build Path -> Configure Build Path -> Add external JARs -> choose: jflex/lib/java-cup-11a.jar and jflex/lib/jflex-1.6.1.jar`
+
 ## Running it
 
 * [lexical analysis](analysis/lexical/): WIP
