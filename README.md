@@ -40,5 +40,3 @@ java -jar <path to java-cup-11a.jar> -parser Parser -symbols Sym Parser.cup
 ### Run both Analysis
 
 Fix packages and imports for the files generated and run compiler/Main.py using your IDE.
-
-### Run Compiler
