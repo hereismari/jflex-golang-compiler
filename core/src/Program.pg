@@ -1,0 +1,15 @@
+program <{    
+    @age INT:
+    @name STR:
+
+    &imprmir(^idade; ^nome) [
+        if TT [
+            $idade -> ^idade:
+            $nome -> ^nome:
+        ]        
+        if FF [         
+            $nome -> ^nome:
+        ]        
+    ]
+    %imprimir(~sdfsd~; 12; 12):
+}>

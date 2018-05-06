@@ -1,0 +1,56 @@
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+
+
+parser code {:
+
+    public void report_error(String message, Object info)  {
+        System.out.println("Warning - " + message);
+    }
+
+    public void report_fatal_error(String message, Object info)  {
+        System.out.println("Error - " + message);
+        System.exit(-1);
+    }
+
+:};
+
+
+terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;
+terminal RIGHT_PARAMETER, LEFT_PARAMETER, INTEGER, STRING, SEMICOLON, FUNCTION;
+terminal FUNCTION_PARAMS, LEFT_BRACKETS, RIGHT_BRACKETS, TT, FF, IF, ASSIGNMENT;
+terminal SYMBOL_ASSIGNMENT;
+
+non terminal program, statements, statement, statement_function;
+non terminal decl_variable, decl_call_function, decl_call_params, decl_params, decl_function, decl_if;
+non terminal decl_boolean,decl_assignments, decl_assignment;
+non terminal params_type, data_types;
+
+start with program;
+
+program ::= PROGRAM BEGIN statements END;
+
+statements ::= statements statement | statement ;
+
+statement ::= decl_variable | decl_call_function | decl_function;
+
+decl_function ::= FUNCTION LEFT_PARAMETER decl_params RIGHT_PARAMETER LEFT_BRACKETS statement_function RIGHT_BRACKETS;
+
+decl_params ::= decl_params SEMICOLON FUNCTION_PARAMS | FUNCTION_PARAMS | ;
+
+statement_function ::= statement_function decl_if | decl_if;
+decl_if ::= IF decl_boolean LEFT_BRACKETS decl_assignments RIGHT_BRACKETS;
+
+decl_assignments ::= decl_assignments decl_assignment | decl_assignment ; 
+
+decl_assignment ::= ASSIGNMENT SYMBOL_ASSIGNMENT FUNCTION_PARAMS COLON;
+
+decl_boolean ::= TT | FF;
+
+decl_call_function ::= CALL_FUNCTION LEFT_PARAMETER decl_call_params RIGHT_PARAMETER COLON;
+decl_call_params ::= decl_call_params SEMICOLON params_type | params_type | ;
+params_type ::= INTEGER | STRING;
+
+decl_variable ::= VARIABLE data_types COLON;
+data_types ::= INTEGER_TYPE | STRING_TYPE;
