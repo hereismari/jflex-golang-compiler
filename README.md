@@ -13,3 +13,10 @@ A Golang compiler implementation.
 
 * Eclipse 4.X
 
+## Running it
+
+* [lexical analysis](analysis/lexical/): WIP
+* [syntax analysis](): NOT STARTED
+* [semantic analysis](): NOT STARTED
+* [code generation](): NOT STARTED
+
