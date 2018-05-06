@@ -23,8 +23,22 @@ A Golang compiler implementation.
 
 ## Running it
 
-* [lexical analysis](analysis/lexical/): WIP
-* [syntax analysis](): NOT STARTED
-* [semantic analysis](): NOT STARTED
-* [code generation](): NOT STARTED
+### Lexical Analysis
 
+```bash
+cd src/core/lexical/
+java -jar <path to jflex-1.6.1.jar> language.lex
+```
+
+### Syntax Analysis
+
+```bash
+cd src/core/syntax/
+java -jar <path to java-cup-11a.jar> -parser Parser -symbols Sym Parser.cup
+```
+
+### Run both Analysis
+
+Fix packages and imports for the files generated and run compiler/Main.py using your IDE.
+
+### Run Compiler
