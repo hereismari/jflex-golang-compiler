@@ -26,14 +26,14 @@ A Golang compiler implementation.
 ### Lexical Analysis
 
 ```bash
-cd src/core/lexical/
-java -jar <path to jflex-1.6.1.jar> language.lex
+cd core/src/lexical/
+java -jar <path to jflex-1.6.1.jar> language.jflex
 ```
 
 ### Syntax Analysis
 
 ```bash
-cd src/core/syntax/
+cd core/src/syntax/
 java -jar <path to java-cup-11a.jar> -parser Parser -symbols Sym Parser.cup
 ```
 
