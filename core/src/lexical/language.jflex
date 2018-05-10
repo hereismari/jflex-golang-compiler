@@ -1,72 +1,51 @@
+import java.io.*;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
 
 %%
 
-%cup
-%public
 %class Lexer
+%unicode
+%public
+%cup
 %line
 %column
+%char
+%implements sym
 
+%{
+	ComplexSymbolFactory symbolFactory;
+	
+	public Lexer(java.io.Reader in, ComplexSymbolFactory sf) {
+		this(in);
+		symbolFactory = sf;
+    }
+    
+    private Symbol symbol(int sym) {
+    	Location left = new Location(yyline+1, yycolumn+1, yychar);
+    	Location right = new Location(yyline+1, yycolumn+yylength(), yychar+yylength());
+    	return symbolFactory.newSymbol("sym", sym, left, right);
+	}
+	
+	private Symbol symbol(int sym, Object val) {
+    	Location left = new Location(yyline+1, yycolumn+1, yychar);
+    	Location right = new Location(yyline+1, yycolumn+yylength(), yychar+yylength());
+    	return symbolFactory.newSymbol("sym", sym, left, right, val);
+	}
+%}
 
-DIGIT = [0-9]
-LETTER = [a-zA-Z_]
-COMMENT = \|\|.*\n
-STRING = \~{LETTER}+\~
-INTEGER = {DIGIT}+
-VARIABLE = @{LETTER}+
-ASSIGNMENT = \${LETTER}+
-FUNCTION = &{LETTER}+
-FUNCTION_PARAMS = \^{LETTER}+ 
-CALL_FUNCTION = %{LETTER}+
-IGNORE = [\n|\s|\t\r]
+%eofval{
+     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1, yycolumn+1, yychar), new Location(yyline+1, yycolumn+1, yychar+1));
+%eofval}
+
+Digit      = [0-9]
+Letter     = [a-zA-Z]
+NewLine    = \r|\n|\r\n
+WhiteSpace = {NewLine} | [ \t\f]
 
 %%
 
-<YYINITIAL> {
+"if" { return symbol(IF, yytext()); }
 
-    "program"       {return new Symbol(Sym.PROGRAM); }
-    "if"            {return new Symbol(Sym.IF); }
-
-    "<{"            {return new Symbol(Sym.BEGIN); }
-    "}>"            {return new Symbol(Sym.END); }
-
-    "INT"           {return new Symbol(Sym.INTEGER_TYPE); }
-    "STR"           {return new Symbol(Sym.INTEGER_TYPE); }
-
-    ":"             {return new Symbol(Sym.COLON); }
-    "("             {return new Symbol(Sym.LEFT_PARAMETER); }
-    ")"             {return new Symbol(Sym.RIGHT_PARAMETER); }    
-    "["             {return new Symbol(Sym.LEFT_BRACKETS); }
-    "]"             {return new Symbol(Sym.RIGHT_BRACKETS); }    
-
-    ";"             {return new Symbol(Sym.SEMICOLON); }
-
-    "TT"            {return new Symbol(Sym.TT); }
-    "FF"            {return new Symbol(Sym.FF); }
-
-    "->"            {return new Symbol(Sym.SYMBOL_ASSIGNMENT); }
-
-    {CALL_FUNCTION} {return new Symbol(Sym.CALL_FUNCTION); }
-
-    {ASSIGNMENT}    {return new Symbol(Sym.ASSIGNMENT); }
-
-    {STRING}        {return new Symbol(Sym.STRING); }
-    {INTEGER}       {return new Symbol(Sym.INTEGER); }  
-
-
-    {FUNCTION}      {return new Symbol(Sym.FUNCTION); }
-
-    {FUNCTION_PARAMS}   {return new Symbol(Sym.FUNCTION_PARAMS); }
-
-    {VARIABLE}      {return new Symbol(Sym.VARIABLE); }
-
-    {IGNORE}        {}
-    {COMMENT}       {}
-
-}
-
-<<EOF>> { return new Symbol( Sym.EOF ); }
-
-
-[^] { throw new Error("Illegal character: "+yytext()+" at line "+(yyline+1)+", column "+(yycolumn+1) ); }
+[^]  { System.err.println("Error: Illegal character: " + yytext() + " " + (yyline+1) + "/" + (yycolumn+1)); }
