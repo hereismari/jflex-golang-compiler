@@ -34,7 +34,7 @@ java -jar <path to jflex-1.6.1.jar> language.jflex
 
 ```bash
 cd core/src/syntax/
-java -jar <path to java-cup-11a.jar> -parser Parser -symbols Sym Parser.cup
+java -jar <path to java-cup-11a.jar> -package syntax -parser Parser -symbols Sym -interface Parser.cup
 ```
 
 ### Run both Analysis

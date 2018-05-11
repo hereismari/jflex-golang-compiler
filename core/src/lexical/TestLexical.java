@@ -1,49 +1,39 @@
 package lexical;
 
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.file.Paths;
+
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.Symbol;
+import syntax.Sym;
 
 public class TestLexical {
-    // Run Generator before executing this script
-	
-	private static String EOF = "\u001a";
-	private static String MSG_ERRO = "Erro léxico detectado " + EOF;
-	
-	public static void testExpression(String expr, Boolean res) throws Exception {
-		expr = expr + EOF;
-		LexicalAnalyzer lexical = new LexicalAnalyzer(new StringReader(expr));
-		
-		System.out.println("Expression " + expr);
-		
+	// Run Generator before executing this script
+
+	public static void main(String[] args) {
 		try {
-			lexical.yylex();
-		} catch(RuntimeException e) {
-			if(res) {
-				if (!e.getMessage().equals(MSG_ERRO)) {
-					throw new Exception("Erro: " + e.getMessage());
-				}
-			} else {
-				if (e.getMessage().equals(MSG_ERRO)) {
-					throw new Exception("Aparentemente a expressão foi aceita quando não deveria.");
-				}
+			ComplexSymbolFactory csf = new ComplexSymbolFactory();
+
+			String rootPath = Paths.get("").toAbsolutePath().toString();
+			String sourceCode = rootPath + "/core/src/program.go";
+
+			FileInputStream stream = new FileInputStream(sourceCode);
+			Reader reader = new InputStreamReader(stream);
+
+			Lexer lexer = new Lexer(reader, csf);
+
+			Symbol symb = lexer.next_token();
+			System.out.println(symb);
+
+			while (symb.sym != Sym.EOF) {
+				symb = lexer.next_token();
+				System.out.println(symb);
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println(e.getMessage());
 		}
 	}
-
-	public static void main(String[] args) throws Exception {
-
-		List<String> expressions = new ArrayList<String>();
-		List<Boolean> results = new ArrayList<Boolean>();
-		
-		expressions.add("if 2 +3+a then");
-		results.add(true);
-		
-		expressions.add("1erro");
-		results.add(false);
-		
-		for (int i = 0; i < expressions.size(); i++) {
-			testExpression(expressions.get(i), results.get(i));
-		}
-    }
 }

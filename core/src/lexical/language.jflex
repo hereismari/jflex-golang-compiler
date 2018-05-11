@@ -1,7 +1,9 @@
-import java.io.*;
+package lexical;
+
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
+import syntax.Sym;
 
 %%
 
@@ -11,11 +13,10 @@ import java_cup.runtime.Symbol;
 %cup
 %line
 %column
-%char
-%implements sym
+%implements Sym
 
 %{
-	ComplexSymbolFactory symbolFactory;
+	private ComplexSymbolFactory symbolFactory;
 	
 	public Lexer(java.io.Reader in, ComplexSymbolFactory sf) {
 		this(in);
@@ -23,29 +24,40 @@ import java_cup.runtime.Symbol;
     }
     
     private Symbol symbol(int sym) {
-    	Location left = new Location(yyline+1, yycolumn+1, yychar);
-    	Location right = new Location(yyline+1, yycolumn+yylength(), yychar+yylength());
+    	Location left = new Location(yyline+1, yycolumn+1);
+    	Location right = new Location(yyline+1, yycolumn+yylength());
     	return symbolFactory.newSymbol("sym", sym, left, right);
 	}
 	
 	private Symbol symbol(int sym, Object val) {
-    	Location left = new Location(yyline+1, yycolumn+1, yychar);
-    	Location right = new Location(yyline+1, yycolumn+yylength(), yychar+yylength());
+    	Location left = new Location(yyline+1, yycolumn+1);
+    	Location right = new Location(yyline+1, yycolumn+yylength());
     	return symbolFactory.newSymbol("sym", sym, left, right, val);
 	}
 %}
 
 %eofval{
-     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1, yycolumn+1, yychar), new Location(yyline+1, yycolumn+1, yychar+1));
+     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1, yycolumn+1), new Location(yyline+1, yycolumn+1));
 %eofval}
 
-Digit      = [0-9]
-Letter     = [a-zA-Z]
-NewLine    = \r|\n|\r\n
-WhiteSpace = {NewLine} | [ \t\f]
+Newline        = \R
+UnicodeChar    = [^\R]
+UnicodeLetter  = [:letter:]
+UnicodeDigit   = [:digit:]
+
+Letter         = {UnicodeLetter} | "_"
+DecimalDigit   = [0-9]
+OctalDigit     = [0-7]
+HexDigit       = [0-9] | [A-F] | [a-f]
+WhiteSpace     = {Newline} | [ \t\f]
+LineComment    = "//" {UnicodeChar}* {Newline}?
+GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
 %%
 
-"if" { return symbol(IF, yytext()); }
+{LineComment}    { }
+{GeneralComment} { }
+
+"if"             { return symbol(IF, yytext()); }
 
 [^]  { System.err.println("Error: Illegal character: " + yytext() + " " + (yyline+1) + "/" + (yycolumn+1)); }
