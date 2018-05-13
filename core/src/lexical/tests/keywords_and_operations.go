@@ -1,7 +1,4 @@
-//break <= || or case default
-
-//w break  ||    <     <=    [    ]
-
+//w case default break  ||    <     <=    [    ]
 +    &     +=    &=     &&    ==    !=    (    )
 -    |     -=    |=      break        default      func         interface    select
 case         defer        go           map          struct
