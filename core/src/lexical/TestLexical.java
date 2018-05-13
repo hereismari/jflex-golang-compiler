@@ -34,6 +34,8 @@ public class TestLexical {
 			while (symb.sym != Sym.EOF) {
 				symb = lexer.next_token();
 			}
+			System.out.println(symb);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println(e.getMessage());
