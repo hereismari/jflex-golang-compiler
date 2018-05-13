@@ -51,6 +51,9 @@ import syntax.Sym;
 
 Newline        = \r|\n|\r\n
 UnicodeChar    = [^\r|\n|\r\n]
+UnicodeCharDash = [^\r|\n|\r\n|"\""]
+UnicodeCharDash2 = [^\r|\n|\r\n|"`"]
+
 UnicodeLetter  = [:letter:]
 UnicodeDigit   = [:digit:]
 
@@ -59,6 +62,7 @@ DecimalDigit   = [0-9]
 OctalDigit     = [0-7]
 HexDigit       = [0-9]|[A-F]|[a-f]
 
+// Number literal
 DecimalLit = [1-9]{DecimalDigit}*
 OctalLit   = "0"{OctalDigit}*
 HexLit     = "0"("x"|"X"){HexDigit}{HexDigit}*
@@ -70,6 +74,25 @@ FloatLit   = {Decimals}"."{Decimals}?{Exponent}?|{Decimals}{Exponent}|"."{Decima
 
 ImaginaryLit = ({Decimals}|{FloatLit})"i"
 
+// Rune literal
+OctalByteValue   = "\\"{OctalDigit}{OctalDigit}{OctalDigit}
+ByteValue        = {OctalByteValue} | {HexByteValue}
+HexByteValue     = "\\""x"{HexDigit}{HexDigit}
+LittleUValue     = "\\""u"{HexDigit}{HexDigit}{HexDigit}{HexDigit}
+BigUValue        = "\\""U"{HexDigit}{HexDigit}{HexDigit}{HexDigit}{HexDigit}{HexDigit}{HexDigit}{HexDigit}
+EscapedChar      = "\\"( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\\" | "'" | "\"")
+
+UnicodeValue     = {UnicodeChar} | {LittleUValue} | {BigUValue} | {EscapedChar}
+RuneLit          = "'" ( {UnicodeValue} | {ByteValue}) "'" 
+
+// String literal
+
+UnicodeValueDash     = {UnicodeCharDash} | {LittleUValue} | {BigUValue} | {EscapedChar}
+RawStringLit         = "`"({UnicodeCharDash2} | {Newline})* "`"
+IntStringLit         = "\""({UnicodeValueDash} | {ByteValue})* "\""
+StringLit            = {RawStringLit} | {IntStringLit} | "\""
+
+// White space and comments
 WhiteSpace     = {Newline} | [ \t\f]
 LineComment    = "//"{UnicodeChar}*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
@@ -176,6 +199,8 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 {IntLit}                      { return symbol(CONSTANT, yytext()); }
 {FloatLit}                    { return symbol(CONSTANT, yytext()); }
 {ImaginaryLit}                { return symbol(CONSTANT, yytext()); }
+{RuneLit}                     { return symbol(CONSTANT, yytext()); }
+{StringLit}                   { return symbol(STRING_LITERAL, yytext()); }
 
 // Ignore whitespace
 
