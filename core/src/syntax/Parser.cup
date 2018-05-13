@@ -2,9 +2,7 @@ import java_cup.runtime.*;
 import java.util.*;
 import java.io.*;
 
-
 parser code {:
-
     public void report_error(String message, Object info)  {
         System.out.println("Warning - " + message);
     }
@@ -16,11 +14,36 @@ parser code {:
 
 :};
 
+action code
+{:
+:};
 
+
+// keywords
+terminal IF;
+// punctuation
+terminal SEMICOLON;
+
+non terminal grammar;
+start with grammar;
+
+grammar ::= IF;
+
+
+
+/*
 terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;
 terminal RIGHT_PARAMETER, LEFT_PARAMETER, INTEGER, STRING, SEMICOLON, FUNCTION;
 terminal FUNCTION_PARAMS, LEFT_BRACKETS, RIGHT_BRACKETS, TT, FF, IF, ASSIGNMENT;
 terminal SYMBOL_ASSIGNMENT;
+
+terminal IDENTIFIER, CONSTANT, STRING_LITERAL, SIZEOF, PTR_OP, INC_OP, DEC_OP, LEFT_OP, RIGHT_OP, LE_OP, GE_OP, EQ_OP, NE_OP,
+    AND_OP, OR_OP, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, LEFT_ASSIGN, RIGHT_ASSIGN, AND_ASSIGN,
+    XOR_ASSIGN, OR_ASSIGN, TYPE_NAME, TYPEDEF, EXTERN, STATIC, AUTO, REGISTER,
+    CHAR, SHORT, INT, LONG, SIGNED, UNSIGNED, FLOAT, DOUBLE, CONST, VOLATILE, VOID, STRUCT, UNION, ENUM, ELLIPSIS,
+    CASE, DEFAULT, IF, ELSE, SWITCH, WHILE, DO, FOR, GOTO, CONTINUE, BREAK, RETURN,
+    SEMI, CURLYL, CURLYR, COMMA, COLON, ASSIGN, PARAL, PARAR, SQUAREDL, SQUAREDR, POINT, ADRESS, NOT, TILDE, MINUS, PLUS, MUL, DIVIDE, MODULUS, LESS, GREATER, XOR, OR, COND;
+
 
 non terminal program, statements, statement, statement_function;
 non terminal decl_variable, decl_call_function, decl_call_params, decl_params, decl_function, decl_if;
@@ -53,4 +76,4 @@ decl_call_params ::= decl_call_params SEMICOLON params_type | params_type | ;
 params_type ::= INTEGER | STRING;
 
 decl_variable ::= VARIABLE data_types COLON;
-data_types ::= INTEGER_TYPE | STRING_TYPE;
+data_types ::= INTEGER_TYPE | STRING_TYPE; */

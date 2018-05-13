@@ -17,7 +17,7 @@ public class TestLexical {
 			ComplexSymbolFactory csf = new ComplexSymbolFactory();
 
 			String rootPath = Paths.get("").toAbsolutePath().toString();
-			String sourceCode = rootPath + "/core/src/program.go";
+			String sourceCode = rootPath + "/core/src/lexical/tests/comment_and_if.go";
 
 			FileInputStream stream = new FileInputStream(sourceCode);
 			Reader reader = new InputStreamReader(stream);
