@@ -11,18 +11,12 @@ parser code {:
         System.out.println("Error - " + message);
         System.exit(-1);
     }
-
-:};
-
-action code
-{:
 :};
 
 // keywords
 terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
 terminal MAP, STRUCT, CHAN, ELSE, GOTO, PACKAGE, SWITCH, CONST;
 terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR;
-
 
 // operation
 terminal PLUS, ADDRESS, AND, MINUS, OR, LT, LTE, MUL, XOR;
@@ -41,16 +35,14 @@ terminal COMMA, SEMICOLON, ELLIPSIS, COLON, POINT;
 terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 
 // others
-terminal CONSTANT, STRING_LITERAL;
+terminal CONSTANT, STRING_LITERAL, IDENTIFIER;
 
 
 /* grammar */
-non terminal grammar;
-start with grammar;
+non terminal program;
+start with program;
 
-grammar ::= IF;
-
-
+program ::= IF IF IF;
 
 /*
 terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;
