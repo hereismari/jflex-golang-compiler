@@ -58,18 +58,34 @@ Letter         = {UnicodeLetter}|"_"
 DecimalDigit   = [0-9]
 OctalDigit     = [0-7]
 HexDigit       = [0-9]|[A-F]|[a-f]
+
+DecimalLit = [1-9]{DecimalDigit}*
+OctalLit   = "0"{OctalDigit}*
+HexLit     = "0"("x"|"X"){HexDigit}{HexDigit}*
+IntLit     = {DecimalLit}|{OctalLit}|{HexLit}
+
+Decimals   = {DecimalDigit}{DecimalDigit}*
+Exponent   = ("e"|"E")("+"|"-")?{Decimals}
+FloatLit   = {Decimals}"."{Decimals}?{Exponent}?|{Decimals}{Exponent}|"."{Decimals}{Exponent}?
+
+ImaginaryLit = ({Decimals}|{FloatLit})"i"
+
 WhiteSpace     = {Newline} | [ \t\f]
 LineComment    = "//"{UnicodeChar}*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
+Identifier     = {Letter}({Letter} | {UnicodeDigit})*
+ 
+
 %%
 
-
 // Ignore comments
+
 {LineComment}                 { ignore("//", yytext()); }
 {GeneralComment}              { ignore("/*", yytext()); }
 
 // Keywords
+
 "break"                       { return symbol(BREAK, "break"); }
 "default"                     { return symbol(DEFAULT, "default"); }
 "func"                        { return symbol(FUNC, "func"); }
@@ -155,10 +171,15 @@ GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 "."                           { return symbol(POINT, "."); }
 ":"                           { return symbol(COLON, ":"); }
 
+// Other
+
+{IntLit}                      { return symbol(CONSTANT, yytext()); }
+{FloatLit}                    { return symbol(CONSTANT, yytext()); }
+{ImaginaryLit}                { return symbol(CONSTANT, yytext()); }
+
 // Ignore whitespace
 
 {WhiteSpace} { ignore("WhiteSpace", yytext()); }
-
 
 
 [^]  { System.err.println("Error: Illegal character: " + yytext() + " Line: " + (yyline+1) + ", Column:" + (yycolumn+1)); }

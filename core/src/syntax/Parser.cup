@@ -40,6 +40,9 @@ terminal AND_NOT_OP, CHANNEL_OP;
 terminal COMMA, SEMICOLON, ELLIPSIS, COLON, POINT;
 terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 
+// others
+terminal CONSTANT, STRING_LITERAL;
+
 
 /* grammar */
 non terminal grammar;

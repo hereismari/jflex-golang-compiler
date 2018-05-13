@@ -13,7 +13,8 @@ public class TestLexical {
 	// Run Generator before executing this script
 
 	//private String path = "/core/src/lexical/tests/comment_and_if.go";
-	private static String path = "/core/src/lexical/tests/keywords_and_operations.go";
+	//private static String path = "/core/src/lexical/tests/keywords_and_operations.go";
+	private static String path = "/core/src/lexical/tests/number_literals.go";
 	
 	public static void main(String[] args) {
 		try {
