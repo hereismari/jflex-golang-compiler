@@ -12,13 +12,15 @@ import syntax.Sym;
 public class TestLexical {
 	// Run Generator before executing this script
 
+	//private String path = "/core/src/lexical/tests/comment_and_if.go";
+	private static String path = "/core/src/lexical/tests/keywords_and_operations.go";
+	
 	public static void main(String[] args) {
 		try {
 			ComplexSymbolFactory csf = new ComplexSymbolFactory();
 
 			String rootPath = Paths.get("").toAbsolutePath().toString();
-			String sourceCode = rootPath + "/core/src/lexical/tests/comment_and_if.go";
-
+			String sourceCode = rootPath + path;
 			FileInputStream stream = new FileInputStream(sourceCode);
 			Reader reader = new InputStreamReader(stream);
 
