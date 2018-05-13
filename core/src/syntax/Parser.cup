@@ -18,12 +18,33 @@ action code
 {:
 :};
 
-
 // keywords
-terminal IF;
-// punctuation
-terminal SEMICOLON;
+terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
+terminal MAP, STRUCT, CHAN, ELSE, GOTO, PACKAGE, SWITCH, CONST;
+terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR;
 
+
+// operation
+terminal PLUS, ADDRESS, AND, MINUS, OR, LT, LTE, MUL, XOR;
+terminal GT, GTE, DIV, MOD, NOT;
+
+terminal ADD_ASSIGN, ADDRESS_ASSIGN, MINUS_ASSIGN;
+terminal OR_ASSIGN, MUL_ASSIGN, XOR_ASSIGN, DIV_ASSIGN;
+terminal LEFT_ASSIGN, ASSIGN, CHANNEL_ASSIGN;
+terminal RIGHT_ASSIGN, AND_NOT_ASSIGN;
+
+terminal EQ_OP, NE_OP, OR_OP, LEFT_OP, RIGHT_OP, INC_OP, SUB_OP;
+terminal AND_NOT_OP, CHANNEL_OP;
+
+// punctuation
+terminal COMMA, SEMICOLON, ELLIPSIS, COLON, POINT;
+terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
+
+// others
+terminal CONSTANT, STRING_LITERAL;
+
+
+/* grammar */
 non terminal grammar;
 start with grammar;
 
