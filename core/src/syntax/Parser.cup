@@ -39,7 +39,6 @@ terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
 terminal FLOAT_LITERAL, IDENTIFIER;
 
 /* Non terminals */
-non terminal BasicLit;
 
 // Struct related
 non terminal StructType;
@@ -73,15 +72,40 @@ non terminal AuxParameters1, AuxParameterList1;
 non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
 
-non terminal BasicLitAux;
-start with BasicLitAux;
 
+non terminal BasicLit;
+non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
+non terminal Expression, UnaryExpr;
+non terminal X, Y;
+start with Expression;
 
 /* grammar */
 /* ------------ Operands ------------ */
-BasicLitAux ::= BasicLitAux BasicLit |;
+
+
 BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
 
+
+//unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
+UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
+
+//mul_op     = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
+MulOp    ::= MUL | DIV | MOD | LEFT_OP | RIGHT_OP | ADDRESS | AND_NOT_OP;
+
+//add_op     = "+" | "-" | "|" | "^" .
+AddOp    ::= PLUS | MINUS | OR | XOR;
+
+//rel_op     = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
+
+//binary_op  = "||" | "&&" | rel_op | add_op | mul_op .
+BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
+
+//Expression = UnaryExpr | Expression binary_op Expression .
+//UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+
+UnaryExpr  ::= IF; // FixMe: PrimaryExpr | unary_op UnaryExpr .
+Expression ::= UnaryExpr | Expression FOR Expression;
 
 /* ------------ Struct -------------- */
 StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
