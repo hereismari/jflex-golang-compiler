@@ -25,18 +25,16 @@ A Golang compiler implementation.
 
 ### Lexical Analysis
 
-```bash
-cd core/src/lexical/
-java -jar <path to jflex-1.6.1.jar> language.jflex
-```
+The lexical definition can be seen at [core/src/lexical/language.jflex](core/src/lexical/language.jflex).
+
+1. Run [core/src/lexical/Generator.java](core/src/lexical/Generator.java)
+2. If you want to test the lexical analysis run [core/src/lexical/TestLexical.java](core/src/lexical/TestLexical.java)
 
 ### Syntax Analysis
 
+1. Generate the Parser.java and Sym.java
 ```bash
 cd core/src/syntax/
 java -jar <path to java-cup-11a.jar> -package syntax -parser Parser -symbols Sym -interface Parser.cup
 ```
-
-### Run both Analysis
-
-Fix packages and imports for the files generated and run compiler/Main.py using your IDE.
+2. If you want to test the syntax analysis run [core/src/sytax/TestSyntax.java](core/src/sytax/TestSyntax.java)
