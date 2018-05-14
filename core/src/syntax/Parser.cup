@@ -38,8 +38,7 @@ terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
 terminal FLOAT_LITERAL, IDENTIFIER;
 
-
-/* grammar */
+/* Non terminals */
 non terminal BasicLit;
 
 // Struct related
@@ -74,10 +73,15 @@ non terminal AuxParameters1, AuxParameterList1;
 non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
 
-start with StructType;
+non terminal BasicLitAux;
+start with BasicLitAux;
 
+
+/* grammar */
 /* ------------ Operands ------------ */
+BasicLitAux ::= BasicLitAux BasicLit |;
 BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
+
 
 /* ------------ Struct -------------- */
 StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
