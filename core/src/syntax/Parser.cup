@@ -31,18 +31,114 @@ terminal EQ_OP, NE_OP, OR_OP, LEFT_OP, RIGHT_OP, INC_OP, SUB_OP;
 terminal AND_NOT_OP, CHANNEL_OP;
 
 // punctuation
-terminal COMMA, SEMICOLON, ELLIPSIS, COLON, POINT;
+terminal COMMA, SEMICOLON, ELLIPSIS, COLON, DOT;
 terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 
 // others
-terminal CONSTANT, STRING_LITERAL, IDENTIFIER;
+terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
+terminal FLOAT_LITERAL, IDENTIFIER;
 
 
 /* grammar */
-non terminal program;
-start with program;
+non terminal BasicLit;
 
-program ::= IF IF IF;
+// Struct related
+non terminal StructType;
+non terminal FieldDeclStar1, FieldDecl;
+non terminal IdentifierList, EmbeddedField, Tag;
+non terminal Type, TypeName, TypeLit;
+non terminal QualifiedIdent;
+non terminal PackageName;
+non terminal ArrayLength, ArrayType;
+
+non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
+non terminal MapType, SliceType, KeyType, ChannelType;
+
+non terminal Signature, AuxResult, Result;
+non terminal Parameters, ParameterList;
+non terminal ParameterDecl;
+
+non terminal MethodSpec, MethodName, InterfaceTypeName;
+
+// Optional
+non terminal OptMul;
+non terminal OptComma;
+non terminal OptIdentifierList;
+non terminal OptEllipsis;
+
+
+// Aux. terminals
+non terminal AuxFieldDecl1, AuxFieldDecl2;
+non terminal IdentifierStar1;
+non terminal AuxParameters1, AuxParameterList1;
+non terminal AuxIntefaceType1;
+non terminal AuxChannelType1;
+
+start with StructType;
+
+/* ------------ Operands ------------ */
+BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
+
+/* ------------ Struct -------------- */
+StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
+FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 FieldDecl SEMICOLON |;
+FieldDecl ::= AuxFieldDecl1 | AuxFieldDecl2;
+AuxFieldDecl1 ::= IdentifierList Type | EmbeddedField; // IdentifierList Type | EmbeddedField
+
+AuxFieldDecl2 ::= | Tag;
+	
+Tag ::= STRING_LITERAL;
+
+EmbeddedField ::= OptMul TypeName;
+OptMul ::= MUL |;
+
+IdentifierList ::= IDENTIFIER IdentifierStar1;
+IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
+
+Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
+TypeName ::= IDENTIFIER | QualifiedIdent;
+TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;
+
+QualifiedIdent ::= PackageName DOT IDENTIFIER;
+PackageName ::= IDENTIFIER; // FIXME: PackageName cant be blank identifier _
+
+ArrayLength ::= INT_LITERAL; // FIXME: Array length actually is an expression
+ArrayType ::= SQRD_L ArrayLength SQRD_R ElementType;
+ElementType ::= Type;
+
+PointerType ::= MUL BaseType;
+BaseType ::= Type;
+
+/* Functions */
+FunctionType   ::= FUNC Signature;
+Signature      ::= Parameters AuxResult;
+AuxResult      ::= Result |;
+Result         ::= Parameters | Type;
+
+Parameters     ::= PAR_L AuxParameters1 PAR_R;
+AuxParameters1 ::= ParameterList OptComma |;
+OptComma       ::= COMMA |;
+
+ParameterList  ::= ParameterDecl AuxParameterList1;
+AuxParameterList1 ::= AuxParameterList1 COMMA ParameterDecl |;
+ParameterDecl   ::= OptIdentifierList OptEllipsis Type;
+OptIdentifierList ::= IdentifierList |;
+OptEllipsis     ::= ELLIPSIS |; 
+
+InterfaceType      ::= INTERFACE PAR_L AuxIntefaceType1 PAR_R;
+AuxIntefaceType1   ::= AuxIntefaceType1 MethodSpec SEMICOLON |;
+MethodSpec         ::= MethodName Signature | InterfaceTypeName;
+MethodName         ::= IDENTIFIER;
+InterfaceTypeName  ::= TypeName;
+
+SliceType ::= SQRD_L SQRD_R ElementType;
+
+MapType     ::= MAP SQRD_L KeyType SQRD_R ElementType;
+KeyType     ::= Type;
+
+ChannelType ::= AuxChannelType1 ElementType;
+AuxChannelType1 ::= CHAN | CHAN CHANNEL_OP | CHANNEL_OP CHAN;
+
 
 /*
 terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;

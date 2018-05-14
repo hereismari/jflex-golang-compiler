@@ -104,8 +104,8 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 
 // Ignore comments
 
-{LineComment}                 { ignore("//", yytext()); }
-{GeneralComment}              { ignore("/*", yytext()); }
+{LineComment}                 {}
+{GeneralComment}              {}
 
 // Keywords
 
@@ -191,22 +191,20 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 ","                           { return symbol(COMMA, ","); }
 ";"                           { return symbol(SEMICOLON, ";"); }
 "..."			              { return symbol(ELLIPSIS,"..."); }
-"."                           { return symbol(POINT, "."); }
+"."                           { return symbol(DOT, "."); }
 ":"                           { return symbol(COLON, ":"); }
 
 // Other
 
 
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
-{IntLit}                      { return symbol(CONSTANT, yytext()); }
-{FloatLit}                    { return symbol(CONSTANT, yytext()); }
-{ImaginaryLit}                { return symbol(CONSTANT, yytext()); }
-{RuneLit}                     { return symbol(CONSTANT, yytext()); }
+{IntLit}                      { return symbol(INT_LITERAL, yytext()); }
+{FloatLit}                    { return symbol(FLOAT_LITERAL, yytext()); }
+{ImaginaryLit}                { return symbol(IMG_LITERAL, yytext()); }
+{RuneLit}                     { return symbol(RUNE_LITERAL, yytext()); }
 {StringLit}                   { return symbol(STRING_LITERAL, yytext()); }
 
-// Ignore whitespace
-
-{WhiteSpace} { ignore("WhiteSpace", yytext()); }
-
+// Ignore whitespace 
+{WhiteSpace} {}
 
 [^]  { System.err.println("Error: Illegal character: " + yytext() + " Line: " + (yyline+1) + ", Column:" + (yycolumn+1)); }
