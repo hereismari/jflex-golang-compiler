@@ -45,6 +45,7 @@ non terminal StructType;
 non terminal FieldDeclStar1, FieldDecl;
 non terminal IdentifierList, EmbeddedField, Tag;
 non terminal Type, TypeName, TypeLit;
+non terminal TypeNameNoIdentifier;
 non terminal QualifiedIdent;
 non terminal PackageName;
 non terminal ArrayLength, ArrayType;
@@ -66,7 +67,7 @@ non terminal OptEllipsis;
 
 
 // Aux. terminals
-non terminal AuxFieldDecl1, AuxFieldDecl2;
+non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3;
 non terminal IdentifierStar1;
 non terminal AuxParameters1, AuxParameterList1;
 non terminal AuxIntefaceType1;
@@ -77,14 +78,30 @@ non terminal BasicLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
+
+/*
+Precedence    Operator
+    5             *  /  %  <<  >>  &  &^
+    4             +  -  |  ^
+    3             ==  !=  <  <=  >  >=
+    2             &&
+    1             ||
+*/
+
+precedence left OR_OP;
+precedence left AND;
+precedence left EQ_OP, NE_OP, LT, LTE, GT, GTE;
+precedence left PLUS, MINUS, OR, XOR;
+precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
+precedence left CHANNEL_OP;
+
 start with Expression;
+
 
 /* grammar */
 /* ------------ Operands ------------ */
 
-
 BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
-
 
 //unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
 UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
@@ -104,20 +121,21 @@ BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 //Expression = UnaryExpr | Expression binary_op Expression .
 //UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
-UnaryExpr  ::= IF; // FixMe: PrimaryExpr | unary_op UnaryExpr .
-Expression ::= UnaryExpr | Expression FOR Expression;
+UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
+Expression ::= UnaryExpr | Expression BinOp Expression;
 
 /* ------------ Struct -------------- */
 StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
 FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 FieldDecl SEMICOLON |;
 FieldDecl ::= AuxFieldDecl1 | AuxFieldDecl2;
-AuxFieldDecl1 ::= IdentifierList Type | EmbeddedField; // IdentifierList Type | EmbeddedField
 
+AuxFieldDecl1 ::= IDENTIFIER AuxFieldDecl3; // IdentifierList Type | EmbeddedField
+AuxFieldDecl3 ::= IdentifierStar1 Type | EmbeddedField;
 AuxFieldDecl2 ::= | Tag;
 	
 Tag ::= STRING_LITERAL;
 
-EmbeddedField ::= OptMul TypeName;
+EmbeddedField ::= TypeNameNoIdentifier | MUL;
 OptMul ::= MUL |;
 
 IdentifierList ::= IDENTIFIER IdentifierStar1;
@@ -125,6 +143,7 @@ IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
 
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 TypeName ::= IDENTIFIER | QualifiedIdent;
+TypeNameNoIdentifier ::= QualifiedIdent;
 TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;
 
 QualifiedIdent ::= PackageName DOT IDENTIFIER;
