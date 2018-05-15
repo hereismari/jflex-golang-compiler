@@ -77,14 +77,16 @@ non terminal BasicLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
-start with Expression;
+
+// ConstDeclaration
+non terminal ConstDecl;
+
+start with BasicLit;
 
 /* grammar */
+
 /* ------------ Operands ------------ */
-
-
 BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
-
 
 //unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
 UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
@@ -106,6 +108,16 @@ BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
 UnaryExpr  ::= IF; // FixMe: PrimaryExpr | unary_op UnaryExpr .
 Expression ::= UnaryExpr | Expression FOR Expression;
+
+/* ------------ Const Declaration ------------ */
+//ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
+// ConstDecl ::= CONST AuxConstDecl1;
+// AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
+// AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
+
+//ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
+// ConstSpec ::= IdentifierList AuxConstSpec2;
+
 
 /* ------------ Struct -------------- */
 StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
@@ -180,7 +192,6 @@ terminal IDENTIFIER, CONSTANT, STRING_LITERAL, SIZEOF, PTR_OP, INC_OP, DEC_OP, L
     CHAR, SHORT, INT, LONG, SIGNED, UNSIGNED, FLOAT, DOUBLE, CONST, VOLATILE, VOID, STRUCT, UNION, ENUM, ELLIPSIS,
     CASE, DEFAULT, IF, ELSE, SWITCH, WHILE, DO, FOR, GOTO, CONTINUE, BREAK, RETURN,
     SEMI, CURLYL, CURLYR, COMMA, COLON, ASSIGN, PARAL, PARAR, SQUAREDL, SQUAREDR, POINT, ADRESS, NOT, TILDE, MINUS, PLUS, MUL, DIVIDE, MODULUS, LESS, GREATER, XOR, OR, COND;
-
 
 non terminal program, statements, statement, statement_function;
 non terminal decl_variable, decl_call_function, decl_call_params, decl_params, decl_function, decl_if;
