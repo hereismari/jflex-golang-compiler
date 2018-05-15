@@ -138,6 +138,7 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 "import"                      { return symbol(IMPORT, "import"); }
 "return"                      { return symbol(RETURN, "return"); }
 "var"                         { return symbol(VAR, "var"); }
+"_"                           { return symbol(BLANK_ID, "_"); }
 
 // Operators
 
