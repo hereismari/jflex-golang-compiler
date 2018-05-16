@@ -17,6 +17,7 @@ parser code {:
 terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
 terminal MAP, STRUCT, CHAN, ELSE, GOTO, PACKAGE, SWITCH, CONST;
 terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR;
+terminal BLANK_ID;
 
 // operation
 terminal PLUS, ADDRESS, AND, MINUS, OR, LT, LTE, MUL, XOR;
@@ -166,7 +167,7 @@ TypeNameNoIdentifier ::= QualifiedIdent;
 TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;
 
 QualifiedIdent ::= PackageName DOT IDENTIFIER;
-PackageName ::= IDENTIFIER; // FIXME: PackageName cant be blank identifier _
+PackageName ::= IDENTIFIER;
 
 ArrayLength ::= INT_LITERAL; // FIXME: Array length actually is an expression
 ArrayType ::= SQRD_L ArrayLength SQRD_R ElementType;
