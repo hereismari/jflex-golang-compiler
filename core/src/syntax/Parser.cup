@@ -57,6 +57,8 @@ non terminal StructType;
 non terminal FieldDeclStar1, FieldDecl;
 non terminal IdentifierList, EmbeddedField, Tag;
 
+non terminal EmbeddedField1, EmbeddedField2;
+
 non terminal Type, TypeLit;
 non terminal TypeName, AuxTypeName1, AuxTypeName2;
 
@@ -81,7 +83,7 @@ non terminal OptIdentifierList;
 non terminal OptEllipsis;
 
 // Aux. terminals
-non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3;
+non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
 non terminal IdentifierStar1;
 non terminal AuxParameters1, AuxParameterList1;
 non terminal AuxIntefaceType1;
@@ -98,7 +100,12 @@ non terminal ConstDecl;
 /* helpers */
 non terminal Identifier;
 
+
+/* test terminals */
 non terminal TypeStar;
+non terminal BasicLitStar;
+non terminal ExpressionStar;
+non terminal QualifiedIdentifierStar;
 
 /*
 Precedence    Operator
@@ -119,10 +126,12 @@ precedence left CHANNEL_OP;
 start with TypeStar;
 
 /* helpers */
-Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
+Identifier ::=   IDENTIFIER:i {: System.out.println("ID " + i); :}
+               | BLANK_IDENTIFIER:i {: System.out.println("ID " + i); :};
 
 /* grammar */
 /* ------------ Operands ------------ */
+BasicLitStar ::= BasicLit BasicLitStar |;
 BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
 
 //unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
@@ -145,6 +154,8 @@ BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
 UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
 Expression ::= UnaryExpr | Expression BinOp Expression;
+ExpressionStar ::= ExpressionStar Expression |;
+
 
 /* ------------ Const Declaration ------------ */
 //ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
@@ -155,39 +166,43 @@ Expression ::= UnaryExpr | Expression BinOp Expression;
 //ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
 // ConstSpec ::= IdentifierList AuxConstSpec2;
 
-
 /* ------------ Struct -------------- */
 StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
 FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 FieldDecl SEMICOLON |;
-FieldDecl ::= AuxFieldDecl1 | AuxFieldDecl2;
+FieldDecl ::= AuxFieldDecl1 AuxFieldDecl2;
 
-AuxFieldDecl1 ::= IDENTIFIER AuxFieldDecl3; // IdentifierList Type | EmbeddedField
-AuxFieldDecl3 ::= IdentifierStar1 Type | EmbeddedField;
+AuxFieldDecl1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
+AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier:i {: System.out.println("ID "  + i); :};
+AuxFieldDecl4 ::= IdentifierStar1 Type;
 AuxFieldDecl2 ::= | Tag;
-	
+
 Tag ::= STRING_LITERAL;
 
-EmbeddedField ::= TypeNameNoIdentifier | MUL;
+// Mandatory MUL included
+EmbeddedField1 ::= MUL TypeName:x {: System.out.println("EMB FIELD "  + x); :};
 OptMul ::= MUL |;
 
-IdentifierList ::= IDENTIFIER IdentifierStar1;
-IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
+IdentifierList ::= Identifier:i {: System.out.println("ID "  + i); :} IdentifierStar1 |;
+IdentifierStar1 ::= COMMA:a {: System.out.println("COMMA "  + a); :} Identifier:x {: System.out.println("AFTER COMMA "  + x); :} IdentifierStar1 | ; // COMMA IDENTIFIER IdentifierStar1 |;
 
-TypeStar ::= Type TypeStar |;
+TypeStar ::= Type TypeStar |; // test state
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName ::= AuxTypeName1;
-AuxTypeName1 ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
-AuxTypeName2 ::= DOT IDENTIFIER |;
+TypeName ::= AuxTypeName1; // OK
+AuxTypeName1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxTypeName2 | BLANK_IDENTIFIER;
+AuxTypeName2 ::= DOT Identifier:i {: System.out.println("ID "  + i); :} |;
+AuxTypeName3 ::= AuxTypeName2 | BLANK_IDENTIFIER;
 
 //TypeName ::= IDENTIFIER | QualifiedIdent;
 //QualifiedIdent ::= PackageName DOT IDENTIFIER;
 //PackageName ::= IDENTIFIER;
 
 TypeNameNoIdentifier ::= QualifiedIdent;
-TypeLit ::= ArrayType | PointerType | SliceType | MapType | ChannelType; // FIXME: Missing StructType, InterfaceType and FunctionType;
+TypeLit ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing StructType, InterfaceType and FunctionType;
 
-QualifiedIdent ::= PackageName DOT IDENTIFIER;
+QualifiedIdent ::= PackageName DOT Identifier;
+QualifiedIdentifierStar ::= QualifiedIdentifierStar QualifiedIdent |;
+
 PackageName ::= IDENTIFIER;
 
 ArrayLength ::= INT_LITERAL; // FIX ME: Array Length should be an Expression
@@ -226,49 +241,3 @@ KeyType     ::= Type;
 
 ChannelType ::= AuxChannelType1 ElementType;
 AuxChannelType1 ::= CHAN | CHAN CHANNEL_OP | CHANNEL_OP CHAN;
-
-/*
-terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;
-terminal RIGHT_PARAMETER, LEFT_PARAMETER, INTEGER, STRING, SEMICOLON, FUNCTION;
-terminal FUNCTION_PARAMS, LEFT_BRACKETS, RIGHT_BRACKETS, TT, FF, IF, ASSIGNMENT;
-terminal SYMBOL_ASSIGNMENT;
-
-terminal IDENTIFIER, CONSTANT, STRING_LITERAL, SIZEOF, PTR_OP, INC_OP, DEC_OP, LEFT_OP, RIGHT_OP, LE_OP, GE_OP, EQ_OP, NE_OP,
-    AND_OP, OR_OP, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, LEFT_ASSIGN, RIGHT_ASSIGN, AND_ASSIGN,
-    XOR_ASSIGN, OR_ASSIGN, TYPE_NAME, TYPEDEF, EXTERN, STATIC, AUTO, REGISTER,
-    CHAR, SHORT, INT, LONG, SIGNED, UNSIGNED, FLOAT, DOUBLE, CONST, VOLATILE, VOID, STRUCT, UNION, ENUM, ELLIPSIS,
-    CASE, DEFAULT, IF, ELSE, SWITCH, WHILE, DO, FOR, GOTO, CONTINUE, BREAK, RETURN,
-    SEMI, CURLYL, CURLYR, COMMA, COLON, ASSIGN, PARAL, PARAR, SQUAREDL, SQUAREDR, POINT, ADRESS, NOT, TILDE, MINUS, PLUS, MUL, DIVIDE, MODULUS, LESS, GREATER, XOR, OR, COND;
-
-non terminal program, statements, statement, statement_function;
-non terminal decl_variable, decl_call_function, decl_call_params, decl_params, decl_function, decl_if;
-non terminal decl_boolean,decl_assignments, decl_assignment;
-non terminal params_type, data_types;
-
-start with program;
-
-program ::= PROGRAM BEGIN statements END;
-
-statements ::= statements statement | statement ;
-
-statement ::= decl_variable | decl_call_function | decl_function;
-
-decl_function ::= FUNCTION LEFT_PARAMETER decl_params RIGHT_PARAMETER LEFT_BRACKETS statement_function RIGHT_BRACKETS;
-
-decl_params ::= decl_params SEMICOLON FUNCTION_PARAMS | FUNCTION_PARAMS | ;
-
-statement_function ::= statement_function decl_if | decl_if;
-decl_if ::= IF decl_boolean LEFT_BRACKETS decl_assignments RIGHT_BRACKETS;
-
-decl_assignments ::= decl_assignments decl_assignment | decl_assignment ; 
-
-decl_assignment ::= ASSIGNMENT SYMBOL_ASSIGNMENT FUNCTION_PARAMS COLON;
-
-decl_boolean ::= TT | FF;
-
-decl_call_function ::= CALL_FUNCTION LEFT_PARAMETER decl_call_params RIGHT_PARAMETER COLON;
-decl_call_params ::= decl_call_params SEMICOLON params_type | params_type | ;
-params_type ::= INTEGER | STRING;
-
-decl_variable ::= VARIABLE data_types COLON;
-data_types ::= INTEGER_TYPE | STRING_TYPE; */

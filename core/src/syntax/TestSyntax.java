@@ -15,7 +15,8 @@ public class TestSyntax {
 	//private static String sourcecode = "/core/src/syntax/tests/basicLit.go";
 	//private static String sourcecode = "/core/src/syntax/tests/expressions.go";
 	//private static String sourcecode = "/core/src/syntax/tests/qualifiedIdentifier.go";
-	private static String sourcecode = "/core/src/syntax/tests/TypeName.go";
+	//private static String sourcecode = "/core/src/syntax/tests/TypeName.go";
+	private static String sourcecode = "/core/src/syntax/tests/types.go";
 	
 	public static void main(String[] args) {
 

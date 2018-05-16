@@ -1,3 +1,20 @@
+// Stryct types
+// An empty struct.
+struct {}
+
+struct {
+	x, y int;
+}
+
+// A struct with 6 fields.
+struct {
+	x, y int;
+	u float32;
+	_ float32; // padding
+	A *[]int;
+	// F func();
+}
+
 // Array Types
 [32]byte
 //[2*N] struct { x, y int32 }
@@ -25,4 +42,4 @@ chan (<-chan int)
 // Map Types
 map[string]int
 //map[*T]struct{ x, y float64 }
-//map[string]interface{}
+//map[string]interface{} */
