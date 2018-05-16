@@ -17,7 +17,6 @@ parser code {:
 terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
 terminal MAP, STRUCT, CHAN, ELSE, GOTO, PACKAGE, SWITCH, CONST;
 terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR;
-terminal BLANK_ID;
 
 // operation
 terminal PLUS, ADDRESS, AND, MINUS, OR, LT, LTE, MUL, XOR;
@@ -45,7 +44,10 @@ terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 non terminal StructType;
 non terminal FieldDeclStar1, FieldDecl;
 non terminal IdentifierList, EmbeddedField, Tag;
-non terminal Type, TypeName, TypeLit;
+
+non terminal Type, TypeLit;
+non terminal TypeName, AuxTypeName1, AuxTypeName2;
+
 non terminal TypeNameNoIdentifier;
 non terminal QualifiedIdent;
 non terminal PackageName;
@@ -100,7 +102,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with QualifiedIdent;
+start with TypeName;
 
 /* helpers */
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
@@ -159,9 +161,14 @@ IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
 
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName ::= AuxTypeName;
-AuxTypeName ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
+TypeName ::= AuxTypeName1;
+AuxTypeName1 ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
 AuxTypeName2 ::= DOT Identifier |;
+
+//TypeName ::= IDENTIFIER | QualifiedIdent;
+//QualifiedIdent ::= PackageName DOT IDENTIFIER;
+//PackageName ::= IDENTIFIER;
+
 
 TypeNameNoIdentifier ::= QualifiedIdent;
 TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;

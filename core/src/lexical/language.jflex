@@ -138,7 +138,6 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 "import"                      { return symbol(IMPORT, "import"); }
 "return"                      { return symbol(RETURN, "return"); }
 "var"                         { return symbol(VAR, "var"); }
-"_"                           { return symbol(BLANK_ID, "_"); }
 
 // Operators
 
@@ -198,8 +197,8 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 // Other
 
 
+"_"                           { return symbol(BLANK_IDENTIFIER, "_"); }
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
-"_"                           { return symbol(BLANK_IDENTIFIER, yytext()); }
 
 {IntLit}                      { return symbol(INT_LITERAL, yytext()); }
 {FloatLit}                    { return symbol(FLOAT_LITERAL, yytext()); }
