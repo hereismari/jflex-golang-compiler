@@ -36,7 +36,7 @@ terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 
 // others
 terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
-terminal FLOAT_LITERAL, IDENTIFIER;
+terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 
 /* Non terminals */
 
@@ -80,6 +80,9 @@ non terminal X, Y;
 // ConstDeclaration
 non terminal ConstDecl;
 
+/* helpers */
+non terminal Identifier;
+
 /*
 Precedence    Operator
     5             *  /  %  <<  >>  &  &^
@@ -97,6 +100,9 @@ precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
 start with QualifiedIdent;
+
+/* helpers */
+Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
 /* grammar */
 /* ------------ Operands ------------ */
@@ -151,7 +157,11 @@ IdentifierList ::= IDENTIFIER IdentifierStar1;
 IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
 
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
-TypeName ::= IDENTIFIER | QualifiedIdent;
+
+TypeName ::= AuxTypeName;
+AuxTypeName ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
+AuxTypeName2 ::= DOT Identifier |;
+
 TypeNameNoIdentifier ::= QualifiedIdent;
 TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;
 

@@ -198,6 +198,8 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 
 
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
+"_"                           { return symbol(BLANK_IDENTIFIER, yytext()); }
+
 {IntLit}                      { return symbol(INT_LITERAL, yytext()); }
 {FloatLit}                    { return symbol(FLOAT_LITERAL, yytext()); }
 {ImaginaryLit}                { return symbol(IMG_LITERAL, yytext()); }
