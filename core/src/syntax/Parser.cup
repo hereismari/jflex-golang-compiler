@@ -1,11 +1,23 @@
 import java_cup.runtime.*;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+
 import java.util.*;
 import java.io.*;
 
 parser code {:
-    public void report_error(String message, Object info)  {
-        System.out.println("Warning - " + message);
-    }
+    public void report_error(String message, Object info){
+       StringBuffer m = new StringBuffer("ERRO SINTÁTICO EM: ");
+
+       if (info instanceof ComplexSymbol){
+         ComplexSymbol s = (ComplexSymbol) info;
+         if(s.value != null) m.append( s.value.toString() );
+         m.append( " - Linha: " + s.getLeft().getLine() + " - Coluna: "+s.getLeft().getColumn() );
+         }
+
+       m.append(" : "+message);
+
+       System.err.println(m);
+     }
 
     public void report_fatal_error(String message, Object info)  {
         System.out.println("Error - " + message);
@@ -86,6 +98,8 @@ non terminal ConstDecl;
 /* helpers */
 non terminal Identifier;
 
+non terminal TypeStar;
+
 /*
 Precedence    Operator
     5             *  /  %  <<  >>  &  &^
@@ -102,7 +116,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with TypeName;
+start with TypeStar;
 
 /* helpers */
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
@@ -159,24 +173,24 @@ OptMul ::= MUL |;
 IdentifierList ::= IDENTIFIER IdentifierStar1;
 IdentifierStar1 ::= IdentifierStar1 COMMA IDENTIFIER |;
 
+TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
 TypeName ::= AuxTypeName1;
 AuxTypeName1 ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
-AuxTypeName2 ::= DOT Identifier |;
+AuxTypeName2 ::= DOT IDENTIFIER |;
 
 //TypeName ::= IDENTIFIER | QualifiedIdent;
 //QualifiedIdent ::= PackageName DOT IDENTIFIER;
 //PackageName ::= IDENTIFIER;
 
-
 TypeNameNoIdentifier ::= QualifiedIdent;
-TypeLit ::= ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType;
+TypeLit ::= ArrayType | PointerType | SliceType | MapType | ChannelType; // FIXME: Missing StructType, InterfaceType and FunctionType;
 
 QualifiedIdent ::= PackageName DOT IDENTIFIER;
 PackageName ::= IDENTIFIER;
 
-ArrayLength ::= INT_LITERAL; // FIXME: Array length actually is an expression
+ArrayLength ::= INT_LITERAL; // FIX ME: Array Length should be an Expression
 ArrayType ::= SQRD_L ArrayLength SQRD_R ElementType;
 ElementType ::= Type;
 
@@ -212,7 +226,6 @@ KeyType     ::= Type;
 
 ChannelType ::= AuxChannelType1 ElementType;
 AuxChannelType1 ::= CHAN | CHAN CHANNEL_OP | CHANNEL_OP CHAN;
-
 
 /*
 terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;

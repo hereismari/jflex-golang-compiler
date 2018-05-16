@@ -32,7 +32,7 @@ import syntax.Sym;
 	}
 	
 	private Symbol symbol(int sym, Object val) {
-		System.out.println("Token " + val + ", Line: " + yyline + ", size:" + yylength());
+		System.out.println("Token (" + sym + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
 	
     	Location left = new Location(yyline+1, yycolumn+1);
     	Location right = new Location(yyline+1, yycolumn+yylength());
