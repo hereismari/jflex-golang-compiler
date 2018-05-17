@@ -172,7 +172,7 @@ FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 Field
 FieldDecl ::= AuxFieldDecl1 AuxFieldDecl2;
 
 AuxFieldDecl1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
-AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier:i {: System.out.println("ID "  + i); :};
+AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier |;
 AuxFieldDecl4 ::= IdentifierStar1 Type;
 AuxFieldDecl2 ::= | Tag;
 

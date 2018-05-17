@@ -15,6 +15,16 @@ struct {
 	// F func();
 }
 
+// Embedded struct (by value).
+struct {
+	Discount;
+}
+
+// Embedded struct (by reference).
+struct {
+	*Discount;
+}
+
 // Array Types
 [32]byte
 //[2*N] struct { x, y int32 }
