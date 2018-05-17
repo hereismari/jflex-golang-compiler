@@ -92,7 +92,7 @@ non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
 
 /* --------------- Basics ---------------------- */
-non terminal BasicLit;
+non terminal BasicLit, CompositeLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
@@ -100,7 +100,9 @@ non terminal ConstDecl;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
-non terminal Literal;
+non terminal Literal, LiteralType, LiteralValue, LiteralValueAux1;
+non terminal Element, ElementList, ElementListAux1;
+non terminal Key, KeyedElement, KeyedElementAux1;
 
 /* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
@@ -143,10 +145,28 @@ AddOp    ::= PLUS | MINUS | OR | XOR;
 RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
 BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
+/* --------------- Composite literal------------ */
+CompositeLit     ::= LiteralType LiteralValue;
+LiteralType      ::= StructType | ArrayType | SQRD_L ELLIPSIS SQRD_R ElementType | SliceType | MapType | TypeName;
+LiteralValue     ::= CURLY_L LiteralValueAux1 CURLY_R;
+LiteralValueAux1 ::= ElementList OptComma |;
+
+ElementList      ::= KeyedElement ElementListAux1;
+ElementListAux1  ::= ElementListAux1 COMMA KeyedElement |;
+
+//KeyedElement     ::= KeyedElementAux1 Element;
+KeyedElement     ::= KeyedElementAux2 KeyedElementAux3;
+KeyedElementAux2 ::= Expression | LiteralValue;
+KeyedElementAux3 ::= KeyedElementAux1 Element;
+KeyedElementAux1 ::= Key COLON |;
+
+Key              ::= IDENTIFIER | Expression | LiteralValue;
+Element          ::= Expression | LiteralValue;
+
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
-Literal        ::= BasicLit; //FIXME: CompositeLit | FunctionLit;
+Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
 
 /* --------------- Expression ------------------ */
 //Expression = UnaryExpr | Expression binary_op Expression .
