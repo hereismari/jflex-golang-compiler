@@ -50,62 +50,61 @@ terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
 terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 
-/* Non terminals */
+/* --------------- Non terminals --------------- */
 
-// Struct related
+/* --------------- Struct ---------------------- */
 non terminal StructType;
-non terminal FieldDeclStar1, FieldDecl;
-non terminal IdentifierList, EmbeddedField, Tag;
+non terminal FieldDecl, FieldDeclStar1;
+non terminal IdentifierList, Tag;
+non terminal EmbeddedField, EmbeddedField1, EmbeddedField2;
 
-non terminal EmbeddedField1, EmbeddedField2;
-
+/* --------------- Type helpers ---------------- */
 non terminal Type, TypeLit;
 non terminal TypeName, AuxTypeName1, AuxTypeName2;
 
-non terminal TypeNameNoIdentifier;
-non terminal QualifiedIdent;
-non terminal PackageName;
-non terminal ArrayLength, ArrayType;
-
+/* --------------- All types ------------------- */
 non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
 non terminal MapType, SliceType, KeyType, ChannelType;
 
-non terminal Signature, AuxResult, Result;
+/* --------------- Array ----------------------- */
+non terminal ArrayLength, ArrayType;
+
+/* --------------- Function -------------------- */
+non terminal Signature, Result, AuxResult;
 non terminal Parameters, ParameterList;
 non terminal ParameterDecl;
+non terminal FuncIdentifierList, FuncIdentifierListAux1;
 
-non terminal MethodSpec, MethodName, InterfaceTypeName;
+/* --------------- Interface ------------------- */
+non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
 
-// Optional
+/* --------------- Optional -------------------- */
 non terminal OptMul;
 non terminal OptComma;
 non terminal OptIdentifierList;
 non terminal OptEllipsis;
 
-// Aux. terminals
+/* --------------- Auxiliary ------------------- */
 non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
 non terminal IdentifierStar1;
 non terminal AuxParameters1, AuxParameterList1;
 non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
 
+/* --------------- Basics ---------------------- */
 non terminal BasicLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
-
-// ConstDeclaration
 non terminal ConstDecl;
 
-/* helpers */
+/* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
 
-
-/* test terminals */
+/* --------------- Tests ----------------------- */
 non terminal TypeStar;
 non terminal BasicLitStar;
 non terminal ExpressionStar;
-non terminal QualifiedIdentifierStar;
 
 /*
 Precedence    Operator
@@ -125,30 +124,22 @@ precedence left CHANNEL_OP;
 
 start with TypeStar;
 
-/* helpers */
-Identifier ::=   IDENTIFIER:i {: System.out.println("ID " + i); :}
-               | BLANK_IDENTIFIER:i {: System.out.println("ID " + i); :};
+Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
-/* grammar */
-/* ------------ Operands ------------ */
+/* --------------- Grammar --------------------- */
+
+/* --------------- Operands -------------------- */
 BasicLitStar ::= BasicLit BasicLitStar |;
-BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
+BasicLit     ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
 
-//unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
 UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
-
-//mul_op     = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
 MulOp    ::= MUL | DIV | MOD | LEFT_OP | RIGHT_OP | ADDRESS | AND_NOT_OP;
-
-//add_op     = "+" | "-" | "|" | "^" .
 AddOp    ::= PLUS | MINUS | OR | XOR;
-
-//rel_op     = "==" | "!=" | "<" | "<=" | ">" | ">=" .
 RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
-
-//binary_op  = "||" | "&&" | rel_op | add_op | mul_op .
 BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
+
+/* --------------- Expression ------------------ */
 //Expression = UnaryExpr | Expression binary_op Expression .
 //UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
@@ -156,8 +147,7 @@ UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
 Expression ::= UnaryExpr | Expression BinOp Expression;
 ExpressionStar ::= ExpressionStar Expression |;
 
-
-/* ------------ Const Declaration ------------ */
+/* --------------- Const ----------------------- */
 //ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
 // ConstDecl ::= CONST AuxConstDecl1;
 // AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
@@ -166,53 +156,43 @@ ExpressionStar ::= ExpressionStar Expression |;
 //ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
 // ConstSpec ::= IdentifierList AuxConstSpec2;
 
-/* ------------ Struct -------------- */
-StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
-FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 FieldDecl SEMICOLON |;
-FieldDecl ::= AuxFieldDecl1 AuxFieldDecl2;
+/* --------------- Struct ---------------------- */
+StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
+FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |;
+FieldDecl      ::= AuxFieldDecl1 AuxFieldDecl2;
 
-AuxFieldDecl1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
+AuxFieldDecl1 ::= IDENTIFIER AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
 AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier |;
 AuxFieldDecl4 ::= IdentifierStar1 Type;
 AuxFieldDecl2 ::= | Tag;
 
 Tag ::= STRING_LITERAL;
 
-// Mandatory MUL included
-EmbeddedField1 ::= MUL TypeName:x {: System.out.println("EMB FIELD "  + x); :};
+EmbeddedField1 ::= MUL TypeName;
 OptMul ::= MUL |;
 
-IdentifierList ::= Identifier:i {: System.out.println("ID "  + i); :} IdentifierStar1 |;
-IdentifierStar1 ::= COMMA:a {: System.out.println("COMMA "  + a); :} Identifier:x {: System.out.println("AFTER COMMA "  + x); :} IdentifierStar1 | ; // COMMA IDENTIFIER IdentifierStar1 |;
+IdentifierList ::= Identifier IdentifierStar1 |;
+IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 
-TypeStar ::= Type TypeStar |; // test state
+TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName ::= AuxTypeName1; // OK
-AuxTypeName1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxTypeName2 | BLANK_IDENTIFIER;
-AuxTypeName2 ::= DOT Identifier:i {: System.out.println("ID "  + i); :} |;
+TypeName ::= AuxTypeName1;
+AuxTypeName1 ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
+AuxTypeName2 ::= DOT Identifier |;
 AuxTypeName3 ::= AuxTypeName2 | BLANK_IDENTIFIER;
 
-//TypeName ::= IDENTIFIER | QualifiedIdent;
-//QualifiedIdent ::= PackageName DOT IDENTIFIER;
-//PackageName ::= IDENTIFIER;
+TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType; // FIXME: Missing InterfaceType and FunctionType;
 
-TypeNameNoIdentifier ::= QualifiedIdent;
-TypeLit ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing StructType, InterfaceType and FunctionType;
-
-QualifiedIdent ::= PackageName DOT Identifier;
-QualifiedIdentifierStar ::= QualifiedIdentifierStar QualifiedIdent |;
-
-PackageName ::= IDENTIFIER;
-
-ArrayLength ::= INT_LITERAL; // FIX ME: Array Length should be an Expression
-ArrayType ::= SQRD_L ArrayLength SQRD_R ElementType;
+/* --------------- Array ----------------------- */
+ArrayLength ::= INT_LITERAL; // FIXME: Array Length should be an Expression
+ArrayType   ::= SQRD_L ArrayLength SQRD_R ElementType;
 ElementType ::= Type;
 
 PointerType ::= MUL BaseType;
-BaseType ::= Type;
+BaseType    ::= Type;
 
-/* Functions */
+/* --------------- Function -------------------- */
 FunctionType   ::= FUNC Signature;
 Signature      ::= Parameters AuxResult;
 AuxResult      ::= Result |;
@@ -222,22 +202,29 @@ Parameters     ::= PAR_L AuxParameters1 PAR_R;
 AuxParameters1 ::= ParameterList OptComma |;
 OptComma       ::= COMMA |;
 
-ParameterList  ::= ParameterDecl AuxParameterList1;
+ParameterList     ::= ParameterDecl AuxParameterList1;
 AuxParameterList1 ::= AuxParameterList1 COMMA ParameterDecl |;
-ParameterDecl   ::= OptIdentifierList OptEllipsis Type;
-OptIdentifierList ::= IdentifierList |;
-OptEllipsis     ::= ELLIPSIS |; 
+ParameterDecl     ::= OptIdentifierList OptEllipsis Type;
+OptIdentifierList ::= FuncIdentifierList |;
+OptEllipsis       ::= ELLIPSIS |;
 
-InterfaceType      ::= INTERFACE PAR_L AuxIntefaceType1 PAR_R;
+FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
+FuncIdentifierListAux1 ::= FuncIdentifierListAux1 COMMA Identifier |;
+
+/* --------------- Interface ------------------- */
+InterfaceType      ::= INTERFACE CURLY_L AuxIntefaceType1 CURLY_R;
 AuxIntefaceType1   ::= AuxIntefaceType1 MethodSpec SEMICOLON |;
-MethodSpec         ::= MethodName Signature | InterfaceTypeName;
-MethodName         ::= IDENTIFIER;
-InterfaceTypeName  ::= TypeName;
+MethodSpec         ::= IDENTIFIER MethodSpecAux1;
+MethodSpecAux1     ::= Signature | MethodSpecAux2;
+MethodSpecAux2     ::= DOT IDENTIFIER |;
 
+/* --------------- Slice ----------------------- */
 SliceType ::= SQRD_L SQRD_R ElementType;
 
+/* --------------- Map ------------------------- */
 MapType     ::= MAP SQRD_L KeyType SQRD_R ElementType;
 KeyType     ::= Type;
 
-ChannelType ::= AuxChannelType1 ElementType;
+/* --------------- Channel --------------------- */
+ChannelType     ::= AuxChannelType1 ElementType;
 AuxChannelType1 ::= CHAN | CHAN CHANNEL_OP | CHANNEL_OP CHAN;
