@@ -98,6 +98,10 @@ non terminal Expression, UnaryExpr;
 non terminal X, Y;
 non terminal ConstDecl;
 
+/* --------------- Operands -------------------- */
+non terminal Operand;
+non terminal Literal;
+
 /* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
 
@@ -105,6 +109,7 @@ non terminal Identifier;
 non terminal TypeStar;
 non terminal BasicLitStar;
 non terminal ExpressionStar;
+non terminal OperandStar;
 
 /*
 Precedence    Operator
@@ -122,13 +127,13 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with TypeStar;
+start with OperandStar;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
 /* --------------- Grammar --------------------- */
 
-/* --------------- Operands -------------------- */
+/* --------------- Operation ------------------- */
 BasicLitStar ::= BasicLit BasicLitStar |;
 BasicLit     ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
 
@@ -138,6 +143,10 @@ AddOp    ::= PLUS | MINUS | OR | XOR;
 RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
 BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
+/* --------------- Operand --------------------- */
+OperandStar    ::= OperandStar Operand |;
+Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
+Literal        ::= BasicLit; //FIXME: CompositeLit | FunctionLit;
 
 /* --------------- Expression ------------------ */
 //Expression = UnaryExpr | Expression binary_op Expression .
