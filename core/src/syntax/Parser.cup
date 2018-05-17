@@ -60,7 +60,7 @@ non terminal EmbeddedField, EmbeddedField1, EmbeddedField2;
 
 /* --------------- Type helpers ---------------- */
 non terminal Type, TypeLit;
-non terminal TypeName, AuxTypeName1, AuxTypeName2;
+non terminal TypeName, AuxTypeName1;
 
 /* --------------- All types ------------------- */
 non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
@@ -162,7 +162,7 @@ FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |;
 FieldDecl      ::= AuxFieldDecl1 AuxFieldDecl2;
 
 AuxFieldDecl1 ::= IDENTIFIER AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
-AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier |;
+AuxFieldDecl3 ::= IdentifierStar1 Type | DOT IDENTIFIER |;
 AuxFieldDecl4 ::= IdentifierStar1 Type;
 AuxFieldDecl2 ::= | Tag;
 
@@ -177,12 +177,10 @@ IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName ::= AuxTypeName1;
-AuxTypeName1 ::= IDENTIFIER AuxTypeName2 | BLANK_IDENTIFIER;
-AuxTypeName2 ::= DOT Identifier |;
-AuxTypeName3 ::= AuxTypeName2 | BLANK_IDENTIFIER;
+TypeName     ::= IDENTIFIER AuxTypeName1;
+AuxTypeName1 ::= DOT IDENTIFIER |;
 
-TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType; // FIXME: Missing InterfaceType and FunctionType;
+TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing InterfaceType and FunctionType;
 
 /* --------------- Array ----------------------- */
 ArrayLength ::= INT_LITERAL; // FIXME: Array Length should be an Expression

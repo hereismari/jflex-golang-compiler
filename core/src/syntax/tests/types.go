@@ -25,6 +25,38 @@ struct {
 	*Discount;
 }
 
+// Embedded struct with blank value - pointer (syntax error).
+//struct {
+//	*_;
+//}
+
+// Embedded struct with blank value - value (syntax error).
+//struct {
+//	_;
+//}
+
+struct {
+	fmt.Formatter;
+}
+
+struct {
+	*fmt.Formatter;
+}
+
+struct {
+	x, y, _, z int;
+}
+
+// Embedded struct shouldn't accept type. (syntax error)
+//struct {
+//	fmt.Formatter int;
+//}
+
+// Embedded struct shouldn't accept type. (syntax error)
+//struct {
+//	*fmt.Formatter int;
+//}
+
 // Array Types
 [32]byte
 //[2*N] struct { x, y int32 }
