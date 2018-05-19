@@ -1,11 +1,23 @@
 import java_cup.runtime.*;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+
 import java.util.*;
 import java.io.*;
 
 parser code {:
-    public void report_error(String message, Object info)  {
-        System.out.println("Warning - " + message);
-    }
+    public void report_error(String message, Object info){
+       StringBuffer m = new StringBuffer("ERRO SINTÁTICO EM: ");
+
+       if (info instanceof ComplexSymbol){
+         ComplexSymbol s = (ComplexSymbol) info;
+         if(s.value != null) m.append( s.value.toString() );
+         m.append( " - Linha: " + s.getLeft().getLine() + " - Coluna: "+s.getLeft().getColumn() );
+         }
+
+       m.append(" : "+message);
+
+       System.err.println(m);
+     }
 
     public void report_fatal_error(String message, Object info)  {
         System.out.println("Error - " + message);
@@ -31,62 +43,202 @@ terminal EQ_OP, NE_OP, OR_OP, LEFT_OP, RIGHT_OP, INC_OP, SUB_OP;
 terminal AND_NOT_OP, CHANNEL_OP;
 
 // punctuation
-terminal COMMA, SEMICOLON, ELLIPSIS, COLON, POINT;
+terminal COMMA, SEMICOLON, ELLIPSIS, COLON, DOT;
 terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 
 // others
-terminal CONSTANT, STRING_LITERAL, IDENTIFIER;
+terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
+terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
+
+/* Non terminals */
+
+// Struct related
+non terminal StructType;
+non terminal FieldDeclStar1, FieldDecl;
+non terminal IdentifierList, EmbeddedField, Tag;
+
+non terminal EmbeddedField1, EmbeddedField2;
+
+non terminal Type, TypeLit;
+non terminal TypeName, AuxTypeName1, AuxTypeName2;
+
+non terminal TypeNameNoIdentifier;
+non terminal QualifiedIdent;
+non terminal PackageName;
+non terminal ArrayLength, ArrayType;
+
+non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
+non terminal MapType, SliceType, KeyType, ChannelType;
+
+non terminal Signature, AuxResult, Result;
+non terminal Parameters, ParameterList;
+non terminal ParameterDecl;
+
+non terminal MethodSpec, MethodName, InterfaceTypeName;
+
+// Optional
+non terminal OptMul;
+non terminal OptComma;
+non terminal OptIdentifierList;
+non terminal OptEllipsis;
+
+// Aux. terminals
+non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
+non terminal IdentifierStar1;
+non terminal AuxParameters1, AuxParameterList1;
+non terminal AuxIntefaceType1;
+non terminal AuxChannelType1;
+
+non terminal BasicLit;
+non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
+non terminal Expression, UnaryExpr;
+non terminal X, Y;
+
+// ConstDeclaration
+non terminal ConstDecl;
+
+/* helpers */
+non terminal Identifier;
 
 
-/* grammar */
-non terminal program;
-start with program;
-
-program ::= IF IF IF;
+/* test terminals */
+non terminal TypeStar;
+non terminal BasicLitStar;
+non terminal ExpressionStar;
+non terminal QualifiedIdentifierStar;
 
 /*
-terminal PROGRAM, BEGIN, END, VARIABLE, COLON, INTEGER_TYPE, STRING_TYPE, CALL_FUNCTION;
-terminal RIGHT_PARAMETER, LEFT_PARAMETER, INTEGER, STRING, SEMICOLON, FUNCTION;
-terminal FUNCTION_PARAMS, LEFT_BRACKETS, RIGHT_BRACKETS, TT, FF, IF, ASSIGNMENT;
-terminal SYMBOL_ASSIGNMENT;
+Precedence    Operator
+    5             *  /  %  <<  >>  &  &^
+    4             +  -  |  ^
+    3             ==  !=  <  <=  >  >=
+    2             &&
+    1             ||
+*/
 
-terminal IDENTIFIER, CONSTANT, STRING_LITERAL, SIZEOF, PTR_OP, INC_OP, DEC_OP, LEFT_OP, RIGHT_OP, LE_OP, GE_OP, EQ_OP, NE_OP,
-    AND_OP, OR_OP, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, LEFT_ASSIGN, RIGHT_ASSIGN, AND_ASSIGN,
-    XOR_ASSIGN, OR_ASSIGN, TYPE_NAME, TYPEDEF, EXTERN, STATIC, AUTO, REGISTER,
-    CHAR, SHORT, INT, LONG, SIGNED, UNSIGNED, FLOAT, DOUBLE, CONST, VOLATILE, VOID, STRUCT, UNION, ENUM, ELLIPSIS,
-    CASE, DEFAULT, IF, ELSE, SWITCH, WHILE, DO, FOR, GOTO, CONTINUE, BREAK, RETURN,
-    SEMI, CURLYL, CURLYR, COMMA, COLON, ASSIGN, PARAL, PARAR, SQUAREDL, SQUAREDR, POINT, ADRESS, NOT, TILDE, MINUS, PLUS, MUL, DIVIDE, MODULUS, LESS, GREATER, XOR, OR, COND;
+precedence left OR_OP;
+precedence left AND;
+precedence left EQ_OP, NE_OP, LT, LTE, GT, GTE;
+precedence left PLUS, MINUS, OR, XOR;
+precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
+
+precedence left CHANNEL_OP;  // HOTFIX: Franklin has given permition.
+
+start with TypeStar;
+
+/* helpers */
+Identifier ::=   IDENTIFIER:i {: System.out.println("ID " + i); :}
+               | BLANK_IDENTIFIER:i {: System.out.println("ID " + i); :};
+
+/* grammar */
+/* ------------ Operands ------------ */
+BasicLitStar ::= BasicLit BasicLitStar |;
+BasicLit ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
+
+//unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
+UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
+
+//mul_op     = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
+MulOp    ::= MUL | DIV | MOD | LEFT_OP | RIGHT_OP | ADDRESS | AND_NOT_OP;
+
+//add_op     = "+" | "-" | "|" | "^" .
+AddOp    ::= PLUS | MINUS | OR | XOR;
+
+//rel_op     = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
+
+//binary_op  = "||" | "&&" | rel_op | add_op | mul_op .
+BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
+
+//Expression = UnaryExpr | Expression binary_op Expression .
+//UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+
+UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
+Expression ::= UnaryExpr | Expression BinOp Expression;
+ExpressionStar ::= ExpressionStar Expression |;
 
 
-non terminal program, statements, statement, statement_function;
-non terminal decl_variable, decl_call_function, decl_call_params, decl_params, decl_function, decl_if;
-non terminal decl_boolean,decl_assignments, decl_assignment;
-non terminal params_type, data_types;
+/* ------------ Const Declaration ------------ */
+//ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
+// ConstDecl ::= CONST AuxConstDecl1;
+// AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
+// AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
 
-start with program;
+//ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
+// ConstSpec ::= IdentifierList AuxConstSpec2;
 
-program ::= PROGRAM BEGIN statements END;
+/* ------------ Struct -------------- */
+StructType ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
+FieldDeclStar1 ::= FieldDeclStar1 FieldDecl SEMICOLON |; // FieldDeclStar1 FieldDecl SEMICOLON |;
+FieldDecl ::= AuxFieldDecl1 AuxFieldDecl2;
 
-statements ::= statements statement | statement ;
+AuxFieldDecl1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxFieldDecl3 | BLANK_IDENTIFIER AuxFieldDecl4 | EmbeddedField1;
+AuxFieldDecl3 ::= IdentifierStar1 Type | DOT Identifier:i {: System.out.println("ID "  + i); :};
+AuxFieldDecl4 ::= IdentifierStar1 Type;
+AuxFieldDecl2 ::= | Tag;
 
-statement ::= decl_variable | decl_call_function | decl_function;
+Tag ::= STRING_LITERAL;
 
-decl_function ::= FUNCTION LEFT_PARAMETER decl_params RIGHT_PARAMETER LEFT_BRACKETS statement_function RIGHT_BRACKETS;
+// Mandatory MUL included
+EmbeddedField1 ::= MUL TypeName:x {: System.out.println("EMB FIELD "  + x); :};
+OptMul ::= MUL |;
 
-decl_params ::= decl_params SEMICOLON FUNCTION_PARAMS | FUNCTION_PARAMS | ;
+IdentifierList ::= Identifier:i {: System.out.println("ID "  + i); :} IdentifierStar1 |;
+IdentifierStar1 ::= COMMA:a {: System.out.println("COMMA "  + a); :} Identifier:x {: System.out.println("AFTER COMMA "  + x); :} IdentifierStar1 | ; // COMMA IDENTIFIER IdentifierStar1 |;
 
-statement_function ::= statement_function decl_if | decl_if;
-decl_if ::= IF decl_boolean LEFT_BRACKETS decl_assignments RIGHT_BRACKETS;
+TypeStar ::= Type TypeStar |; // test state
+Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-decl_assignments ::= decl_assignments decl_assignment | decl_assignment ; 
+TypeName ::= AuxTypeName1; // OK
+AuxTypeName1 ::= IDENTIFIER:i {: System.out.println("ID "  + i); :} AuxTypeName2 | BLANK_IDENTIFIER;
+AuxTypeName2 ::= DOT Identifier:i {: System.out.println("ID "  + i); :} |;
+AuxTypeName3 ::= AuxTypeName2 | BLANK_IDENTIFIER;
 
-decl_assignment ::= ASSIGNMENT SYMBOL_ASSIGNMENT FUNCTION_PARAMS COLON;
+//TypeName ::= IDENTIFIER | QualifiedIdent;
+//QualifiedIdent ::= PackageName DOT IDENTIFIER;
+//PackageName ::= IDENTIFIER;
 
-decl_boolean ::= TT | FF;
+TypeNameNoIdentifier ::= QualifiedIdent;
+TypeLit ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing StructType, InterfaceType and FunctionType;
 
-decl_call_function ::= CALL_FUNCTION LEFT_PARAMETER decl_call_params RIGHT_PARAMETER COLON;
-decl_call_params ::= decl_call_params SEMICOLON params_type | params_type | ;
-params_type ::= INTEGER | STRING;
+QualifiedIdent ::= PackageName DOT Identifier;
+QualifiedIdentifierStar ::= QualifiedIdentifierStar QualifiedIdent |;
 
-decl_variable ::= VARIABLE data_types COLON;
-data_types ::= INTEGER_TYPE | STRING_TYPE; */
+PackageName ::= IDENTIFIER;
+
+ArrayLength ::= INT_LITERAL; // FIX ME: Array Length should be an Expression
+ArrayType ::= SQRD_L ArrayLength SQRD_R ElementType;
+ElementType ::= Type;
+
+PointerType ::= MUL BaseType;
+BaseType ::= Type;
+
+/* Functions */
+FunctionType   ::= FUNC Signature;
+Signature      ::= Parameters AuxResult;
+AuxResult      ::= Result |;
+Result         ::= Parameters | Type;
+
+Parameters     ::= PAR_L AuxParameters1 PAR_R;
+AuxParameters1 ::= ParameterList OptComma |;
+OptComma       ::= COMMA |;
+
+ParameterList  ::= ParameterDecl AuxParameterList1;
+AuxParameterList1 ::= AuxParameterList1 COMMA ParameterDecl |;
+ParameterDecl   ::= OptIdentifierList OptEllipsis Type;
+OptIdentifierList ::= IdentifierList |;
+OptEllipsis     ::= ELLIPSIS |; 
+
+InterfaceType      ::= INTERFACE PAR_L AuxIntefaceType1 PAR_R;
+AuxIntefaceType1   ::= AuxIntefaceType1 MethodSpec SEMICOLON |;
+MethodSpec         ::= MethodName Signature | InterfaceTypeName;
+MethodName         ::= IDENTIFIER;
+InterfaceTypeName  ::= TypeName;
+
+SliceType ::= SQRD_L SQRD_R ElementType;
+
+MapType     ::= MAP SQRD_L KeyType SQRD_R ElementType;
+KeyType     ::= Type;
+
+ChannelType ::= AuxChannelType1 ElementType;
+AuxChannelType1 ::= CHAN | CHAN CHANNEL_OP | CHANNEL_OP CHAN;

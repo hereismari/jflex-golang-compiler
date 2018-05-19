@@ -1,20 +1,44 @@
+0.
+72.40
+072.40  // == 72.40
+2.71828
+1.e+0
+6.67428e-11
+1E6
+.25
+.12345E+5
+
+
+42
+0600
+0xBadFace
+170141183460469231731687303715884105727
+
+
+0i
+011i  // == 11i
+0.i
+2.71828i
+1.e+0i
+6.67428e-11i
+1E6i
+.25i
+.12345E+5i
+
 'a'
 'ä'
 '本'
 '\t'
 '\000'
-'\007' if break continue || <
+'\007'
 '\377'
 '\x07'
 '\xff'
 '\u12e4'
 '\U00101234'
 '\''         // rune literal containing single quote character
-'aa'         // illegal: too many characters, lexical error!
-'\xa'        // illegal: too few hexadecimal digits, lexical error!
-'\0'         // illegal: too few octal digits, lexical error!
-'\uDFFF'     // illegal but no lexical error
-'\U00110000' // illegal but no lexical error
+'\uDFFF'     // illegal: surrogate half, should work!
+'\U00110000' // illegal: invalid Unicode code point, should work!
 
 "abc""abc"
 
@@ -24,7 +48,6 @@
 `abc`                // same as "abc"
 `\n
 \n`                  // same as "\\n\n\\n"
-"\\n\n\\n"
 "\n"
 "\""                 // same as `"`
 "Hello, world!\n"
@@ -47,12 +70,12 @@
 
 123
 
-"\"")
-"\x22")
-"\u0022")
+"\""
+"\x22"
+"\u0022"
 "\042"
 `"`
 '"'
-"%c\n", '"') "%s\n"
+"%c\n" '"' "%s\n"
 // Seriously, this one is just for demonstration not production :)
 

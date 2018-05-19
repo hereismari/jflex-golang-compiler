@@ -18,6 +18,7 @@ public class TestLexical {
 	//private static String path = "/core/src/lexical/tests/rune_and_string_literals.go";
     //private static String path = "/core/src/lexical/tests/variables.go";
 	private static String path = "/core/src/lexical/tests/program.go";
+	//private static String path = "/core/src/lexical/tests/identifiers.go";
 	
 	public static void main(String[] args) {
 		try {
