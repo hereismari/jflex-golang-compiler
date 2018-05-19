@@ -158,22 +158,25 @@ Literal        ::= BasicLit; //FIXME: CompositeLit | FunctionLit;
 //Expression = UnaryExpr | Expression binary_op Expression .
 //UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
-UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
+UnaryExpr  ::= IF | UnaryOp | BasicLit; // FixMe: PrimaryExpr | unary_op UnaryExpr .
 Expression ::= UnaryExpr | Expression BinOp Expression;
 ExpressionStar ::= ExpressionStar Expression |;
 
 /* --------------- Const ----------------------- */
 
-AuxCommaExp ::= AuxCommaExp COMMA Expression | ;
-ExpressionList ::= Expression AuxCommaExp;
-OptType ::= Type | ;
-AuxConstSpec2 ::= OptType ASSIGN ExpressionList | ;
-IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER | ;
-IdentifierListStar2 ::= IDENTIFIER IdentifierListStarAux;
-ConstSpec ::= IdentifierListStar2 AuxConstSpec2;
-AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
-AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
-ConstDecl ::= CONST AuxConstDecl1;
+ConstDecl             ::= CONST AuxConstDecl1;
+AuxConstDecl1         ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
+
+AuxConstSpec          ::= AuxConstSpec ConstSpec SEMICOLON | ;
+
+ConstSpec             ::= IdentifierList AuxConstSpec2;
+AuxConstSpec2         ::= OptType ASSIGN ExpressionList | ;
+
+ExpressionList        ::= Expression AuxCommaExp;
+AuxCommaExp           ::= AuxCommaExp COMMA Expression | ;
+
+OptType               ::= Type | ;
+
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
@@ -190,7 +193,7 @@ Tag ::= STRING_LITERAL;
 EmbeddedField1 ::= MUL TypeName;
 OptMul ::= MUL |;
 
-IdentifierList ::= Identifier IdentifierStar1 |;
+IdentifierList ::= Identifier IdentifierStar1;
 IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 
 TypeStar ::= Type TypeStar |;
