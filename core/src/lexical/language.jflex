@@ -8,40 +8,47 @@ import syntax.Sym;
 %%
 
 %class Lexer
-%unicode
 %public
-%cup
+%unicode
 %line
 %column
+%cup
 %implements Sym
 
 %{
-	private ComplexSymbolFactory symbolFactory;
-	
-	public Lexer(java.io.Reader in, ComplexSymbolFactory sf) {
+	ComplexSymbolFactory symbolFactory;
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf){
 		this(in);
 		symbolFactory = sf;
     }
-    
+  
     private Symbol symbol(int sym) {
-    	System.out.println("Token " + sym + ", Line: " + yyline + ", size:" + yylength());
-    
-    	Location left = new Location(yyline+1, yycolumn+1);
-    	Location right = new Location(yyline+1, yycolumn+yylength());
-    	return symbolFactory.newSymbol("sym", sym, left, right);
-	}
-	
-	private Symbol symbol(int sym, Object val) {
-		System.out.println("Token (" + sym + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
-	
-    	Location left = new Location(yyline+1, yycolumn+1);
-    	Location right = new Location(yyline+1, yycolumn+yylength());
-    	return symbolFactory.newSymbol("sym", sym, left, right, val);
-	}
+    	System.out.println("Token " + Sym.terminalNames[sym] + ", Line: " + yyline + ", size:" + yylength());
+      	return symbolFactory.newSymbol("sym", sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
+  	}
+  
+  	private Symbol symbol(int sym, Object val) {
+  		System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
+		Location left = new Location(yyline+1,yycolumn+1,yychar);
+		Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+		return symbolFactory.newSymbol("sym", sym, left, right,val);
+  	}
+  	
+    private Symbol symbol(int sym, Object val,int buflength) {
+        System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
+        Location left = new Location(yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
+        Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+        return symbolFactory.newSymbol("sym", sym, left, right,val);
+    }
 	
 	private void ignore(String pattern, String content) {
 		System.out.println("Ignoring " + pattern + ", content: " + content);
 	}
+	
+	private void reportError(String invalidPattern, int line, int column) {
+		System.err.println("Lexical error: " + invalidPattern + ", line: " + line + ", column: " + column);
+	}
+	
 	
 %}
 
@@ -98,17 +105,20 @@ LineComment    = "//"{UnicodeChar}*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
 Identifier     = {Letter}({Letter} | {UnicodeDigit})*
- 
+
+//AuxInvalid = [^\r|\n|\r\n| | \t|\f]
+//AuxInvalidFirst = [^\r|\n|\r\n| | \t|\f|"`"|"\""|"'"]
+
+AuxInvalid = {Letter} | {DecimalDigit} | "-"
+Invalid = {AuxInvalid}{AuxInvalid}*
 
 %%
 
 // Ignore comments
-
-{LineComment}                 {}
-{GeneralComment}              {}
+{LineComment}                 { ignore("Line comment", yytext()); }
+{GeneralComment}              { ignore("Long comment", yytext()); }
 
 // Keywords
-
 "break"                       { return symbol(BREAK, "break"); }
 "default"                     { return symbol(DEFAULT, "default"); }
 "func"                        { return symbol(FUNC, "func"); }
@@ -196,7 +206,6 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 
 // Other
 
-
 "_"                           { return symbol(BLANK_IDENTIFIER, "_"); }
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
 
@@ -209,4 +218,7 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 // Ignore whitespace 
 {WhiteSpace} {}
 
-[^]  { System.err.println("Error: Illegal character: " + yytext() + " Line: " + (yyline+1) + ", Column:" + (yycolumn+1)); }
+// Get lexical errors :)
+{Invalid}   { reportError(yytext(), yyline + 1, yycolumn + 1); }
+
+[^]  { reportError(yytext(), yyline + 1, yycolumn + 1); }

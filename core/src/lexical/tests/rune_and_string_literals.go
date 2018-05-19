@@ -13,8 +13,8 @@
 'aa'         // illegal: too many characters, lexical error!
 '\xa'        // illegal: too few hexadecimal digits, lexical error!
 '\0'         // illegal: too few octal digits, lexical error!
-'\uDFFF'     // illegal: surrogate half, should work!
-'\U00110000' // illegal: invalid Unicode code point, should work!
+'\uDFFF'     // illegal but no lexical error
+'\U00110000' // illegal but no lexical error
 
 "abc""abc"
 
@@ -24,6 +24,7 @@
 `abc`                // same as "abc"
 `\n
 \n`                  // same as "\\n\n\\n"
+"\\n\n\\n"
 "\n"
 "\""                 // same as `"`
 "Hello, world!\n"
