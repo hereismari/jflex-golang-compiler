@@ -74,6 +74,10 @@ non terminal Signature, Result, AuxResult;
 non terminal Parameters, ParameterList;
 non terminal ParameterDecl;
 non terminal FuncIdentifierList, FuncIdentifierListAux1;
+//non terminal FunctionDecl, FunctionBody;
+//non terminal Statement, StatementListStar;
+//non terminal LabeledStmt, SimpleStmt, AuxSimpleStmt;
+//non terminal Declaration;
 
 /* --------------- Interface ------------------- */
 non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
@@ -94,9 +98,11 @@ non terminal AuxChannelType1;
 /* --------------- Basics ---------------------- */
 non terminal BasicLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
-non terminal Expression, UnaryExpr;
+non terminal Expression, UnaryExpr, ExpressionList;
 non terminal X, Y;
-non terminal ConstDecl;
+non terminal ConstDecl, ConstSpec, AuxConstSpec, AuxConstSpec2, AuxConstDecl1;
+non terminal AuxCommaExp, IdentifierListStarAux, IdentifierListStar2;
+non terminal OptType;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -127,7 +133,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with OperandStar;
+start with ConstDecl;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -157,13 +163,17 @@ Expression ::= UnaryExpr | Expression BinOp Expression;
 ExpressionStar ::= ExpressionStar Expression |;
 
 /* --------------- Const ----------------------- */
-//ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
-// ConstDecl ::= CONST AuxConstDecl1;
-// AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
-// AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
 
-//ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
-// ConstSpec ::= IdentifierList AuxConstSpec2;
+AuxCommaExp ::= AuxCommaExp COMMA Expression | ;
+ExpressionList ::= Expression AuxCommaExp;
+OptType ::= Type | ;
+AuxConstSpec2 ::= OptType ASSIGN ExpressionList | ;
+IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER | ;
+IdentifierListStar2 ::= IDENTIFIER IdentifierListStarAux;
+ConstSpec ::= IdentifierListStar2 AuxConstSpec2;
+AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
+AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
+ConstDecl ::= CONST AuxConstDecl1;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
@@ -200,10 +210,32 @@ PointerType ::= MUL BaseType;
 BaseType    ::= Type;
 
 /* --------------- Function -------------------- */
+//FunctionDecl = "func" FunctionName Signature [ FunctionBody ] .
+//FunctionName = identifier .
+//FunctionBody = Block .
+//Block = "{" StatementList "}" .
+//StatementList = { Statement ";" } .
+//Statement =
+//	Declaration | LabeledStmt | SimpleStmt |
+//	GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt |
+//	FallthroughStmt | Block | IfStmt | SwitchStmt | SelectStmt | ForStmt |
+//	DeferStmt .
+
+//SimpleStmt = EmptyStmt | ExpressionStmt | SendStmt | IncDecStmt | Assignment | ShortVarDecl .
+
 FunctionType   ::= FUNC Signature;
 Signature      ::= Parameters AuxResult;
 AuxResult      ::= Result |;
 Result         ::= Parameters | Type;
+
+//AuxSimpleStmt ::= CHANNEL_OP Expression | INC_OP | SUB_OP | ;   
+//SimpleStmt ::= Expression AuxSimpleStmt | IdentifierList CHANNEL_ASSIGN ExpressionList;//FIXME: Assignment 
+//LabeledStmt ::= IDENTIFIER COLON Statement;
+//Declaration ::= ConstDecl; //FIXME: TypeDecl | VarDecl
+//Statement ::= Declaration | LabeledStmt | SimpleStmt; //FIXME: all possible fixmes
+//StatementListStar ::= StatementListStar Statement SEMICOLON|;
+//FunctionBody ::= CURLY_L StatementListStar CURLY_R|;
+//FunctionDecl ::= FUNC IDENTIFIER Signature FunctionBody;
 
 Parameters     ::= PAR_L AuxParameters1 PAR_R;
 AuxParameters1 ::= ParameterList OptComma |;
