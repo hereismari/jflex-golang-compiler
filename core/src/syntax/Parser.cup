@@ -96,7 +96,16 @@ non terminal BasicLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
-non terminal ConstDecl;
+non terminal ConstDecl, ConstSpec, AuxConstSpec, AuxConstSpec2, AuxConstDecl1;
+non terminal AuxCommaExp, IdentifierListStarAux, IdentifierListStar2;
+non terminal OptType;
+non terminal Statement;
+non terminal SimpleStmt, ShortVarDecl, AuxExpression, Assignment, AssignOp, AuxOp;
+non terminal ExpressionList;
+non terminal Declaration;
+non terminal TypeDecl, TypeDeclAux, TypeSpecAux, TypeSpec;
+non terminal OptAssign, OptAssignExpList;
+non terminal VarDecl, VarDeclAux, VarSpecAux, VarSpecAux2, VarSpec;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -127,7 +136,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with OperandStar;
+start with Statement;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -156,14 +165,49 @@ UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
 Expression ::= UnaryExpr | Expression BinOp Expression;
 ExpressionStar ::= ExpressionStar Expression |;
 
-/* --------------- Const ----------------------- */
-//ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
-// ConstDecl ::= CONST AuxConstDecl1;
-// AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
-// AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
 
-//ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
-// ConstSpec ::= IdentifierList AuxConstSpec2;
+/* --------------- Const ----------------------- */
+
+AuxCommaExp ::= AuxCommaExp COMMA Expression | ;
+ExpressionList ::= Expression AuxCommaExp;
+OptType ::= Type | ;
+AuxConstSpec2 ::= OptType ASSIGN ExpressionList | ;
+IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER | ;
+IdentifierListStar2 ::= IDENTIFIER IdentifierListStarAux;
+ConstSpec ::= IdentifierListStar2 AuxConstSpec2;
+AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
+AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
+ConstDecl ::= CONST AuxConstDecl1;
+
+/* --------------- Statement ------------------ */
+
+ShortVarDecl ::=  IdentifierListStar2 CHANNEL_ASSIGN ExpressionList;
+AuxOp ::= AddOp | MulOp | ;
+AssignOp ::= AuxOp ASSIGN;
+Assignment ::= ExpressionList AssignOp ExpressionList;
+AuxExpression ::= CHANNEL_OP Expression | INC_OP | SUB_OP | ;
+SimpleStmt ::= Expression AuxExpression | Assignment | ShortVarDecl | ;
+
+//Statement =
+//	Declaration | LabeledStmt | SimpleStmt |
+//	GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt |
+//	FallthroughStmt | Block | IfStmt | SwitchStmt | SelectStmt | ForStmt |
+//	DeferStmt .
+
+OptAssign ::= ASSIGN | ;
+OptAssignExpList ::= ASSIGN ExpressionList | ;
+VarSpecAux2 ::= Type OptAssignExpList | ASSIGN ExpressionList;
+VarSpec ::= IdentifierListStar2 VarSpecAux2;
+VarSpecAux ::= VarSpecAux VarSpec SEMICOLON | ;
+VarDeclAux ::= VarSpec | PAR_L VarSpecAux PAR_R;
+VarDecl ::= VAR VarDeclAux;
+TypeSpec ::= IDENTIFIER OptAssign Type;
+TypeSpecAux::= TypeSpecAux TypeSpec SEMICOLON | ;
+TypeDeclAux ::= TypeSpec | PAR_L TypeSpecAux PAR_R;
+TypeDecl ::= TYPE TypeDeclAux;
+Declaration ::= ConstDecl | TypeDecl | VarDecl;
+
+Statement ::= Declaration | SimpleStmt;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
