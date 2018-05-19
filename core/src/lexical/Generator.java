@@ -20,6 +20,6 @@ public class Generator {
 		File sourceCode = new File(filePath);
 
 		// Scanner to lexical definitions
-		jFlex.Main.generate(sourceCode);
+		jflex.Main.generate(sourceCode);
 	}
 }
