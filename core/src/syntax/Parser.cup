@@ -60,7 +60,8 @@ non terminal EmbeddedField, EmbeddedField1, EmbeddedField2;
 
 /* --------------- Type helpers ---------------- */
 non terminal Type, TypeLit;
-non terminal TypeName, AuxTypeName1;
+non terminal TypeNoIdentifier;
+non terminal TypeName, AuxTypeName1, TypeNameNoPar;
 
 /* --------------- All types ------------------- */
 non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
@@ -70,10 +71,13 @@ non terminal MapType, SliceType, KeyType, ChannelType;
 non terminal ArrayLength, ArrayType;
 
 /* --------------- Function -------------------- */
-non terminal Signature, Result, AuxResult;
+non terminal Signature, Result;
 non terminal Parameters, ParameterList;
-non terminal ParameterDecl;
+non terminal ParameterDecl, ParameterDeclStar;
 non terminal FuncIdentifierList, FuncIdentifierListAux1;
+
+non terminal IdentifierListParam;
+non terminal IdentifierStar2, IdentifierStar3, IdentifierStar4;
 
 /* --------------- Interface ------------------- */
 non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
@@ -87,9 +91,12 @@ non terminal OptEllipsis;
 /* --------------- Auxiliary ------------------- */
 non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
 non terminal IdentifierStar1;
-non terminal AuxParameters1, AuxParameterList1;
+non terminal AuxParameters1, AuxParameters2, AuxParameterList3;
+non terminal AuxParameterList1, AuxParameterList2;
 non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
+
+non terminal AuxResult, AuxResult2, AuxResult3;
 
 /* --------------- Basics ---------------------- */
 non terminal BasicLit, CompositeLit;
@@ -112,6 +119,7 @@ non terminal TypeStar;
 non terminal BasicLitStar;
 non terminal ExpressionStar;
 non terminal OperandStar;
+non terminal FunctionTypeStar;
 
 /*
 Precedence    Operator
@@ -129,7 +137,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with OperandStar;
+start with Type;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -206,16 +214,16 @@ Tag ::= STRING_LITERAL;
 EmbeddedField1 ::= MUL TypeName;
 OptMul ::= MUL |;
 
-IdentifierList ::= Identifier IdentifierStar1 |;
+IdentifierList ::= Identifier IdentifierStar1;
 IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 
 TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName     ::= IDENTIFIER AuxTypeName1;
-AuxTypeName1 ::= DOT IDENTIFIER |;
+TypeName     ::= IDENTIFIER:i {: System.out.println("tn: " + i); :} AuxTypeName1;
+AuxTypeName1 ::= DOT IDENTIFIER:i {: System.out.println(i); :} |;
 
-TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing InterfaceType and FunctionType;
+TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType | FunctionType;
 
 /* --------------- Array ----------------------- */
 ArrayLength ::= INT_LITERAL; // FIXME: Array Length should be an Expression
@@ -226,20 +234,33 @@ PointerType ::= MUL BaseType;
 BaseType    ::= Type;
 
 /* --------------- Function -------------------- */
-FunctionType   ::= FUNC Signature;
-Signature      ::= Parameters AuxResult;
-AuxResult      ::= Result |;
-Result         ::= Parameters | Type;
+FunctionTypeStar ::= FunctionTypeStar FunctionType |;
+FunctionType     ::= FUNC Signature;
+Signature        ::= Parameters AuxResult;
+AuxResult        ::= Result |;
 
-Parameters     ::= PAR_L AuxParameters1 PAR_R;
-AuxParameters1 ::= ParameterList OptComma |;
-OptComma       ::= COMMA |;
+Result         ::= PAR_L AuxResult2 PAR_R | TypeLit | TypeName;
+AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
+AuxResult3     ::= IdentifierStar3 | DOT Identifier;
 
-ParameterList     ::= ParameterDecl AuxParameterList1;
-AuxParameterList1 ::= AuxParameterList1 COMMA ParameterDecl |;
-ParameterDecl     ::= OptIdentifierList OptEllipsis Type;
-OptIdentifierList ::= FuncIdentifierList |;
-OptEllipsis       ::= ELLIPSIS |;
+Parameters          ::= PAR_L AuxParameters1 PAR_R;
+AuxParameters1      ::= ParameterList | ;
+OptComma            ::= COMMA |;
+
+ParameterList       ::= ParameterDecl;
+
+TypeNoIdentifier    ::= TypeLit | PAR_L Type PAR_R;
+ParameterDecl       ::= IdentifierListParam |
+					    ELLIPSIS Type ParameterDeclStar |
+					    TypeNoIdentifier ParameterDeclStar;
+
+ParameterDeclStar   ::= COMMA ParameterDecl | COMMA | ;
+IdentifierListParam ::= Identifier IdentifierStar3;  // include all posibilities
+IdentifierStar3     ::= IdentifierStar2 |;
+IdentifierStar2     ::= COMMA IdentifierStar4 |
+                        ELLIPSIS Type ParameterDeclStar |
+                        Type ParameterDeclStar;
+IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
 
 FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
 FuncIdentifierListAux1 ::= FuncIdentifierListAux1 COMMA Identifier |;

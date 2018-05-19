@@ -3,6 +3,7 @@ package lexical;
 import java.io.File;
 import java.nio.file.Paths;
 
+
 public class Generator {
 	/* Generates a Scanner implemented in Java using the language.jflex file */
 
