@@ -18,8 +18,10 @@ public class Generator {
 
 		// Parser.cup file
 		String filePath = rootPath + subPath;
+		String folderPath = rootPath + "/core/src/syntax/";
 
-		String[] options = { "-package", "syntax", "-parser", "Parser", "-symbols", "Sym", "-interface", filePath };
+		String[] options = { "-package", "syntax", "-parser", "Parser", "-destdir", folderPath, "-symbols", "Sym",
+				"-interface", filePath };
 		java_cup.Main.main(options);
 	}
 }
