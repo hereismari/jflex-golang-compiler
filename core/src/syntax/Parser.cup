@@ -92,15 +92,17 @@ non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
 
 /* --------------- Basics ---------------------- */
-non terminal BasicLit;
+non terminal BasicLit, CompositeLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
-non terminal Expression, UnaryExpr;
+non terminal Expression, UnaryExpr, PrimaryExpr;
 non terminal X, Y;
 non terminal ConstDecl;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
-non terminal Literal;
+non terminal Literal, LiteralType, LiteralValue, LiteralValueAux1;
+non terminal Element, ElementList, ElementListAux1;
+non terminal KeyedElement, KeyedElementAux1, KeyedElementAux2, KeyedElementAux3;
 
 /* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
@@ -143,16 +145,40 @@ AddOp    ::= PLUS | MINUS | OR | XOR;
 RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
 BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
 
+/* --------------- Composite literal------------ */
+CompositeLit     ::= LiteralType LiteralValue;
+LiteralType      ::= StructType | ArrayType | SQRD_L ELLIPSIS SQRD_R ElementType | SliceType | MapType | TypeName;
+LiteralValue     ::= CURLY_L LiteralValueAux1 CURLY_R;
+LiteralValueAux1 ::= ElementList |;
+
+ElementList      ::= KeyedElement ElementListAux1 OptComma;
+ElementListAux1  ::= ElementListAux1 COMMA KeyedElement |;
+
+KeyedElement     ::= KeyedElementAux1 KeyedElementAux2;
+KeyedElementAux1 ::= Expression | LiteralValue;
+KeyedElementAux2 ::= KeyedElementAux3 |;
+KeyedElementAux3 ::= COLON Element;
+
+Element          ::= Expression | LiteralValue;
+
+/*
+Existe um elemento chamado Key na spec que é IDENTIFIER | Expression | LiteralValue. Mas
+eu tirei o IDENTIFIER porque Expression eventualmente leva em IDENTIFIER também. Expression -> UnaryExpr -> PrimaryExpr -> Operand -> TypeName -> IDENTIFIER
+dessa forma fica mais fácil de tirar a ambiguidade de Key e Element, se não seria muito difícil já que Expression também leva em IDENTIFIER.
+Deixar esse comentário aqui pra lembrar vocês de checarem se faz sentido.
+*/
+
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
-Literal        ::= BasicLit; //FIXME: CompositeLit | FunctionLit;
+Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
 
 /* --------------- Expression ------------------ */
 //Expression = UnaryExpr | Expression binary_op Expression .
 //UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
-UnaryExpr  ::= IF | UnaryOp; // FixMe: PrimaryExpr | unary_op UnaryExpr .
+UnaryExpr  ::= PrimaryExpr | UnaryOp UnaryExpr;
+PrimaryExpr ::= Operand | IF;
 Expression ::= UnaryExpr | Expression BinOp Expression;
 ExpressionStar ::= ExpressionStar Expression |;
 

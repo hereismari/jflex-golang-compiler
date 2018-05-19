@@ -31,9 +31,10 @@ public class TestSyntax {
 
 			Lexer lexer = new Lexer(reader, csf);
 			// start parsing
-		    Parser p = new Parser(lexer,csf);
+		    Parser p = new Parser(lexer, csf);
 		    System.out.println("Parser runs: ");
 		    p.parse();
+		    // p.debug_parse();
 
 		    System.out.println("Parsing finished!");
 		} catch (Exception e) {
