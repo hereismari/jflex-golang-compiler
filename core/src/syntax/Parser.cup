@@ -93,16 +93,22 @@ non terminal AuxChannelType1;
 
 /* --------------- Basics ---------------------- */
 non terminal BasicLit, CompositeLit;
+non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
+
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr, PrimaryExpr;
 non terminal X, Y;
 non terminal ConstDecl;
 
 /* --------------- Operands -------------------- */
-non terminal Operand;
+non terminal Operand, OperandIncomplete;
 non terminal Literal, LiteralType, LiteralValue, LiteralValueAux1;
 non terminal Element, ElementList, ElementListAux1;
 non terminal KeyedElement, KeyedElementAux1, KeyedElementAux2, KeyedElementAux3;
+
+
+non terminal Conversion;
+non terminal ConversionIncomplete2, ConversionIncomplete, ConversionAux;
 
 /* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
@@ -129,7 +135,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with OperandStar;
+start with Expression;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -173,14 +179,51 @@ OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
 Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
 
-/* --------------- Expression ------------------ */
-//Expression = UnaryExpr | Expression binary_op Expression .
-//UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
-UnaryExpr  ::= PrimaryExpr | UnaryOp UnaryExpr;
-PrimaryExpr ::= Operand | IF;
-Expression ::= UnaryExpr | Expression BinOp Expression;
+
+
+
+/* --------------- Expression ------------------ */
+
 ExpressionStar ::= ExpressionStar Expression |;
+
+Expression ::= UnaryExpr | Expression BinOp Expression; // Expression = UnaryExpr | Expression binary_op Expression .
+UnaryExpr  ::= PrimaryExpr | UnaryOp UnaryExpr; // UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+
+PrimaryExpr                ::= TypeName ConversionAux | OperandIncomplete | ConversionIncomplete | IF;
+
+OperandIncomplete          ::= BasicLit | CompositeLitIncomplete | PAR_L Expression PAR_R;
+
+CompositeLitIncomplete     ::= LiteralTypeIncomplete LiteralValue;
+LiteralTypeIncomplete      ::= StructType | ArrayType | SQRD_L ELLIPSIS SQRD_R ElementType | SliceType | MapType;
+
+
+ConversionIncomplete  ::= ConversionIncomplete2 PAR_L Expression OptComma PAR_R;
+ConversionIncomplete2 ::= TypeLit; // FIXME: Missing | PAR_L Type PAR_R;
+
+ConversionAux         ::= PAR_L Expression OptComma PAR_R | LiteralValue |; // FIXME: empty
+//Conversion          ::= Type PAR_L Expression OptComma PAR_R;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* --------------- Const ----------------------- */
 //ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
