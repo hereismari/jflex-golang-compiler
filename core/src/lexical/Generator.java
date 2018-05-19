@@ -3,6 +3,7 @@ package lexical;
 import java.io.File;
 import java.nio.file.Paths;
 
+
 public class Generator {
 	/* Generates a Scanner implemented in Java using the language.jflex file */
 
@@ -19,6 +20,6 @@ public class Generator {
 		File sourceCode = new File(filePath);
 
 		// Scanner to lexical definitions
-		jflex.Main.generate(sourceCode);
+		JFlex.Main.generate(sourceCode);
 	}
 }
