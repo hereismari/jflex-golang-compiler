@@ -107,7 +107,9 @@ non terminal TypeDecl, TypeDeclAux, TypeSpecAux, TypeSpec;
 non terminal OptAssign, OptAssignExpList;
 non terminal VarDecl, VarDeclAux, VarSpecAux, VarSpecAux2, VarSpec;
 non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
-non terminal FallthroughStmt, Block, DeferStmt;
+non terminal FallthroughStmt, Block, DeferStmt, SelectStmt;
+non terminal CommClause, CommCase, StmtOpt, RecvStmt, RecvStmtAux;
+non terminal IfStmt, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -196,6 +198,19 @@ Block ::= CURLY_L StatementList CURLY_R;
 
 DeferStmt ::= DEFER Expression;
 
+IfStmtAux2 ::= IfStmt | Block;
+IfStmtAux ::= ELSE IfStmtAux2 | ;
+SimpleStmt2 ::= Expression AuxExpression | Assignment | ShortVarDecl; //FIXME: acho q isso é uma tremenda gambiarra
+SimpleStmtAux ::= SimpleStmt2 SEMICOLON; //FIXME:deveria poder ser vazio, eu acho.
+IfStmt ::= IF SimpleStmtAux Expression Block IfStmtAux;
+
+RecvStmtAux ::= ExpressionList ASSIGN | IdentifierList CHANNEL_ASSIGN; //FIXME:deveria poder ser vazio, eu acho.
+RecvStmt ::= RecvStmtAux Expression;
+StmtOpt ::= Expression CHANNEL_OP Expression | RecvStmt;
+CommCase ::= CASE StmtOpt | DEFAULT;
+CommClause ::= CommCase COLON StatementList;
+SelectStmt ::= SELECT CURLY_L CommClause CURLY_R;
+
 FallthroughStmt ::= FALLTHROUGH;
 
 GotoStmt ::= GOTO IDENTIFIER;
@@ -227,9 +242,8 @@ TypeDecl ::= TYPE TypeDeclAux;
 
 Declaration ::= ConstDecl | TypeDecl | VarDecl;
 
-// FALTANDO: IfStmt | SwitchStmt | SelectStmt | ForStmt 
-//FIXME: faltando IfStmt, muitos conflitos. Ja dizia marina joyce, #HELP
-Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | DeferStmt;
+// FALTANDO: SwitchStmt | ForStmt 
+Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | IfStmt | SelectStmt | DeferStmt;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
