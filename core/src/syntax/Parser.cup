@@ -97,15 +97,17 @@ non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, UnaryExpr;
 non terminal X, Y;
 non terminal ConstDecl, ConstSpec, AuxConstSpec, AuxConstSpec2, AuxConstDecl1;
-non terminal AuxCommaExp, IdentifierListStarAux, IdentifierListStar2;
+non terminal AuxCommaExp, IdentifierListStarAux, IdentifierListStar2, ExpressionListStar;
 non terminal OptType;
-non terminal Statement;
+non terminal Statement, StatementList, StatementListAux;
 non terminal SimpleStmt, ShortVarDecl, AuxExpression, Assignment, AssignOp, AuxOp;
 non terminal ExpressionList;
 non terminal Declaration;
 non terminal TypeDecl, TypeDeclAux, TypeSpecAux, TypeSpec;
 non terminal OptAssign, OptAssignExpList;
 non terminal VarDecl, VarDeclAux, VarSpecAux, VarSpecAux2, VarSpec;
+non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
+non terminal FallthroughStmt, Block, DeferStmt;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -186,28 +188,48 @@ AuxOp ::= AddOp | MulOp | ;
 AssignOp ::= AuxOp ASSIGN;
 Assignment ::= ExpressionList AssignOp ExpressionList;
 AuxExpression ::= CHANNEL_OP Expression | INC_OP | SUB_OP | ;
-SimpleStmt ::= Expression AuxExpression | Assignment | ShortVarDecl | ;
+SimpleStmt ::= Expression AuxExpression | Assignment | ShortVarDecl | ; 
 
-//Statement =
-//	Declaration | LabeledStmt | SimpleStmt |
-//	GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt |
-//	FallthroughStmt | Block | IfStmt | SwitchStmt | SelectStmt | ForStmt |
-//	DeferStmt .
+StatementList ::= Statement SEMICOLON;
+StatementListAux ::= StatementListAux StatementList | ;//FIXME: kleene doesn't work
+Block ::= CURLY_L StatementList CURLY_R;
+
+DeferStmt ::= DEFER Expression;
+
+FallthroughStmt ::= FALLTHROUGH;
+
+GotoStmt ::= GOTO IDENTIFIER;
+
+ContinueStmt ::= CONTINUE Identifier;
+
+BreakStmt ::= BREAK Identifier;
+
+ExpressionListStar ::= ExpressionList | ;
+ReturnStmt ::= RETURN ExpressionListStar;
+
+GoStmt ::= GO Expression;
+
+LabeledStmt ::= IDENTIFIER COLON Statement;
 
 OptAssign ::= ASSIGN | ;
 OptAssignExpList ::= ASSIGN ExpressionList | ;
+
 VarSpecAux2 ::= Type OptAssignExpList | ASSIGN ExpressionList;
 VarSpec ::= IdentifierListStar2 VarSpecAux2;
 VarSpecAux ::= VarSpecAux VarSpec SEMICOLON | ;
 VarDeclAux ::= VarSpec | PAR_L VarSpecAux PAR_R;
 VarDecl ::= VAR VarDeclAux;
+
 TypeSpec ::= IDENTIFIER OptAssign Type;
 TypeSpecAux::= TypeSpecAux TypeSpec SEMICOLON | ;
 TypeDeclAux ::= TypeSpec | PAR_L TypeSpecAux PAR_R;
 TypeDecl ::= TYPE TypeDeclAux;
+
 Declaration ::= ConstDecl | TypeDecl | VarDecl;
 
-Statement ::= Declaration | SimpleStmt;
+// FALTANDO: IfStmt | SwitchStmt | SelectStmt | ForStmt 
+//FIXME: faltando IfStmt, muitos conflitos. Ja dizia marina joyce, #HELP
+Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | DeferStmt;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
