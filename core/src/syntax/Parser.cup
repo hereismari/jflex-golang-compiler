@@ -50,6 +50,10 @@ terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
 terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 
+// hot fixes
+terminal INTERROGATION;
+terminal HASH;
+
 /* --------------- Non terminals --------------- */
 
 /* --------------- Struct ---------------------- */
@@ -86,7 +90,7 @@ non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
 non terminal OptMul;
 non terminal OptComma;
 non terminal OptIdentifierList;
-non terminal OptEllipsis;
+non terminal OptEllipsisComma;
 
 /* --------------- Auxiliary ------------------- */
 non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
@@ -101,9 +105,29 @@ non terminal AuxResult, AuxResult2, AuxResult3;
 /* --------------- Basics ---------------------- */
 non terminal BasicLit, CompositeLit;
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
-non terminal Expression, UnaryExpr, PrimaryExpr;
+non terminal Expression, ExpressionList, UnaryExpr, PrimaryExpr;
 non terminal X, Y;
 non terminal ConstDecl;
+
+non terminal Conversion, NextConversion;
+non terminal TypeConv;
+
+non terminal MethodExpr;
+
+non terminal OptDotIDENTIFIER;
+non terminal DotIdentifier, TypeNameDotIdentifier;
+non terminal AuxTypeNameDotIdentifier;
+
+non terminal AuxTypeDotIdentifier;
+
+non terminal Index, PrimaryExprOtherOptions;
+
+non terminal IndexAndSlice, OptExpression, OptExpression2;
+
+non terminal PossibleClose, PossibleClose2, PossibleClose3;
+
+non terminal Arguments, ExpTypeEtc, OptExpType, OptCommaExp;
+
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -137,7 +161,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with Type;
+start with ExpressionList;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -182,13 +206,48 @@ Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
 Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
 
 /* --------------- Expression ------------------ */
-//Expression = UnaryExpr | Expression binary_op Expression .
-//UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
 
-UnaryExpr  ::= PrimaryExpr | UnaryOp UnaryExpr;
-PrimaryExpr ::= Operand | IF;
-Expression ::= UnaryExpr | Expression BinOp Expression;
-ExpressionStar ::= ExpressionStar Expression |;
+UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
+PrimaryExpr    ::= Operand | Conversion | PrimaryExpr PrimaryExprOtherOptions;  // FIXME: Missing MethodExpr
+Expression     ::= UnaryExpr | Expression BinOp Expression;
+
+// Index, Slice, Not TypeAssertion
+PrimaryExprOtherOptions ::= IndexAndSlice | Arguments; // NOT DOT PAR_L Type PAR_R;
+
+Arguments      ::= HASH:h {: System.out.println("hi"); :} PAR_L ExpTypeEtc PAR_R;
+ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
+OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!!!
+OptCommaExp    ::= COMMA ExpressionList;
+
+IndexAndSlice  ::= SQRD_L Expression PossibleClose | SQRD_L PossibleClose2;
+PossibleClose  ::= SQRD_R | COLON OptExpression SQRD_R;
+PossibleClose2 ::= COLON SQRD_R | COLON Expression PossibleClose3;
+PossibleClose3 ::= COLON Expression SQRD_R;
+
+OptEllipsisComma    ::= ELLIPSIS | ELLIPSIS COMMA | ; // OBS: is possible a COMMA without an ellipsis!!!!
+
+OptExpression  ::= Expression |;
+OptExpression2 ::= SQRD_R | COLON OptExpression; 
+Index ::= SQRD_L Expression SQRD_R;
+
+ExpressionList ::= Expression ExpressionStar;
+ExpressionStar ::= COMMA Expression ExpressionStar |;
+
+//ConversionMethExpr  ::= MethodExprThings | ConversionThings;
+//ConversionThings  ::= TypeName PAR_L Expression OptComma PAR_R;
+
+//MethodExprThings  ::= TypeLit X | INTERROGATION TypeConv INTERROGATION X;
+//AuxConvMethod ::= PAR_L Expression OptComma PAR_R | DOT IDENTIFIER;
+
+Conversion     ::= TypeConv NextConversion;
+NextConversion ::= PAR_L Expression OptComma PAR_R;
+
+TypeConv ::= TypeName | TypeLit | INTERROGATION TypeConv INTERROGATION; // HOTFIX INTERROGATION
+
+// MethodExpr ::= Type DOT IDENTIFIER;
+MethodExprIncomplete ::= TypeLit ;
+
+OptDotIDENTIFIER ::= DOT IDENTIFIER | ;
 
 /* --------------- Const ----------------------- */
 //ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
@@ -239,7 +298,7 @@ FunctionType     ::= FUNC Signature;
 Signature        ::= Parameters AuxResult;
 AuxResult        ::= Result |;
 
-Result         ::= PAR_L AuxResult2 PAR_R | TypeLit | TypeName;
+Result         ::= HASH PAR_L AuxResult2 PAR_R | TypeLit | TypeName;   // HOTFIX HASH
 AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
 AuxResult3     ::= IdentifierStar3 | DOT Identifier;
 
