@@ -9,11 +9,11 @@ f#(3.1415, true),
 Point{1, 2},
 m["foo"],
 s[i : j + 1],
-// s[::], ERRO SINTATICO
+// s[::], // ERRO SINTATICO
 s[:x:x],
 s[1:],
 s[1:1],
-// s[:1] ERRO SINTATICO
+// s[:1],  // ERRO SINTATICO
 obj.color,
 s[f(1):10+20+30-2*1000],
 
@@ -27,7 +27,7 @@ func()(x),        // function signature func() x
 ?func() int?(x),  // x is converted to func() int
 func() int(x),
 ??int??(?int?(x))
-//???????*Point??????? ERRO SINTATICO
+//???????*Point??????? // ERRO SINTATICO
 
 
 
