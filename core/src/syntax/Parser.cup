@@ -110,6 +110,10 @@ non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
 non terminal FallthroughStmt, Block, DeferStmt, SelectStmt;
 non terminal CommClause, CommCase, StmtOpt, RecvStmt, RecvStmtAux;
 non terminal IfStmt, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
+//non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimpleStmtStar, SimplesStmtStarAux, RangeClauseAux;
+non terminal SwitchStmt, SwitchStmtAux, SwitchStmtAux2, SwitchStmtSc;
+non terminal ExprCaseClause, ExprSwitchCase, TypeSwitchGuard, TypeCaseClause;
+non terminal TypeSwitchCase, AuxTypeList, TypeList;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -196,6 +200,26 @@ StatementList ::= Statement SEMICOLON;
 StatementListAux ::= StatementListAux StatementList | ;//FIXME: kleene doesn't work
 Block ::= CURLY_L StatementList CURLY_R;
 
+//SimplesStmtStarAux ::= CHANNEL_OP Expression | INC_OP | SUB_OP | AuxCommaExp AssignOp ExpressionList;
+//SimpleStmtStar ::= Expression SimplesStmtStarAux | ShortVarDecl;
+//RangeClauseAux ::= ExpressionList ASSIGN | IdentifierList CHANNEL_ASSIGN;
+//RangeClause ::= RangeClauseAux RANGE Expression;
+//ForClause ::= SimpleStmtStar SEMICOLON Expression SEMICOLON SimpleStmtStar;
+//ForStmtAux ::= Expression | ForClause | RangeClause;
+//ForStmt ::= FOR ForStmtAux Block;
+
+AuxTypeList ::= AuxTypeList COMMA Type | ;
+TypeList ::= Type AuxTypeList;
+TypeSwitchCase ::= CASE TypeList | DEFAULT;
+TypeCaseClause ::= TypeSwitchCase COLON StatementList;
+TypeSwitchGuard ::= IDENTIFIER CHANNEL_ASSIGN PrimaryExpr DOT PAR_L TYPE PAR_R;
+ExprSwitchCase ::= CASE ExpressionList | DEFAULT ;
+ExprCaseClause ::= ExprSwitchCase COLON StatementList;
+SwitchStmtAux2 ::= Expression CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
+SimpleStmtSc ::= SimpleStmt SEMICOLON | ;
+SwitchStmtAux ::= SimpleStmtSc SwitchStmtAux2;
+SwitchStmt ::= SWITCH SwitchStmtAux;
+
 DeferStmt ::= DEFER Expression;
 
 IfStmtAux2 ::= IfStmt | Block;
@@ -243,7 +267,7 @@ TypeDecl ::= TYPE TypeDeclAux;
 Declaration ::= ConstDecl | TypeDecl | VarDecl;
 
 // FALTANDO: SwitchStmt | ForStmt 
-Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | IfStmt | SelectStmt | DeferStmt;
+Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | IfStmt | SelectStmt | SwitchStmt | DeferStmt;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;

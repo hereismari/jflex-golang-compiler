@@ -12,4 +12,5 @@
 //{goto op;}
 //select {default : goto op;}
 //defer if * if
-if if <- if; if {goto op;} else {goto op2;}
+//if if <- if; if {goto op;} else {goto op2;}
+
