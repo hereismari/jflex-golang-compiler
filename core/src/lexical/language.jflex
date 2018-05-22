@@ -194,9 +194,11 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 "."                           { return symbol(DOT, "."); }
 ":"                           { return symbol(COLON, ":"); }
 
+// HOT FIXES :) .................................... :(
+"?"                           { return symbol(INTERROGATION, "?"); }
+"#"                           { return symbol(HASH, "#"); }
+
 // Other
-
-
 "_"                           { return symbol(BLANK_IDENTIFIER, "_"); }
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
 

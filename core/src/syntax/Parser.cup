@@ -50,6 +50,10 @@ terminal PAR_L, PAR_R, SQRD_L, SQRD_R, CURLY_L, CURLY_R;
 terminal STRING_LITERAL, IMG_LITERAL, INT_LITERAL, RUNE_LITERAL;
 terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 
+// hot fixes
+terminal INTERROGATION;
+terminal HASH;
+
 /* --------------- Non terminals --------------- */
 
 /* --------------- Struct ---------------------- */
@@ -60,7 +64,8 @@ non terminal EmbeddedField, EmbeddedField1, EmbeddedField2;
 
 /* --------------- Type helpers ---------------- */
 non terminal Type, TypeLit;
-non terminal TypeName, AuxTypeName1;
+non terminal TypeNoIdentifier;
+non terminal TypeName, AuxTypeName1, TypeNameNoPar;
 
 /* --------------- All types ------------------- */
 non terminal ElementType, PointerType, BaseType, FunctionType, InterfaceType;
@@ -70,10 +75,13 @@ non terminal MapType, SliceType, KeyType, ChannelType;
 non terminal ArrayLength, ArrayType;
 
 /* --------------- Function -------------------- */
-non terminal Signature, Result, AuxResult;
+non terminal Signature, Result;
 non terminal Parameters, ParameterList;
-non terminal ParameterDecl;
+non terminal ParameterDecl, ParameterDeclStar;
 non terminal FuncIdentifierList, FuncIdentifierListAux1;
+
+non terminal IdentifierListParam;
+non terminal IdentifierStar2, IdentifierStar3, IdentifierStar4;
 
 /* --------------- Interface ------------------- */
 non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
@@ -82,23 +90,45 @@ non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
 non terminal OptMul;
 non terminal OptComma;
 non terminal OptIdentifierList;
-non terminal OptEllipsis;
+non terminal OptEllipsisComma;
 
 /* --------------- Auxiliary ------------------- */
 non terminal AuxFieldDecl1, AuxFieldDecl2, AuxFieldDecl3, AuxFieldDecl4;
 non terminal IdentifierStar1;
-non terminal AuxParameters1, AuxParameterList1;
+non terminal AuxParameters1, AuxParameters2, AuxParameterList3;
+non terminal AuxParameterList1, AuxParameterList2;
 non terminal AuxIntefaceType1;
 non terminal AuxChannelType1;
+
+non terminal AuxResult, AuxResult2, AuxResult3;
 
 /* --------------- Basics ---------------------- */
 non terminal BasicLit, CompositeLit;
 non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
 
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
-non terminal Expression, UnaryExpr, PrimaryExpr;
+non terminal Expression, ExpressionList, UnaryExpr, PrimaryExpr;
 non terminal X, Y;
-non terminal ConstDecl;
+
+non terminal Conversion, NextConversion;
+non terminal TypeConv;
+
+non terminal MethodExpr;
+
+non terminal OptDotIDENTIFIER;
+non terminal DotIdentifier, TypeNameDotIdentifier;
+non terminal AuxTypeNameDotIdentifier;
+
+non terminal AuxTypeDotIdentifier;
+
+non terminal Index, PrimaryExprOtherOptions;
+
+non terminal IndexAndSlice, OptExpression, OptExpression2;
+
+non terminal PossibleClose, PossibleClose2, PossibleClose3;
+
+non terminal Arguments, ExpTypeEtc, OptExpType, OptCommaExp;
+
 
 /* --------------- Operands -------------------- */
 non terminal Operand, OperandIncomplete;
@@ -106,18 +136,45 @@ non terminal Literal, LiteralType, LiteralValue, LiteralValueAux1;
 non terminal Element, ElementList, ElementListAux1;
 non terminal KeyedElement, KeyedElementAux1, KeyedElementAux2, KeyedElementAux3;
 
-
-non terminal Conversion;
-non terminal ConversionIncomplete2, ConversionIncomplete, ConversionAux;
-
 /* --------------- IDENTIFIER + BLANK ---------- */
 non terminal Identifier;
+
+
+/* --------------- Statements ------------------ */
+non terminal ConstDecl, ConstSpec, AuxConstSpec, AuxConstSpec2, AuxConstDecl1;
+non terminal AuxCommaExp, IdentifierListStarAux, IdentifierListStar2, ExpressionListStar;
+
+non terminal OptType;
+non terminal Statement, StatementList, StatementListAux;
+non terminal SimpleStmt, ShortVarDecl, AuxExpression, Assignment, AssignOp, AuxOp;
+non terminal OptSimpleStmt;
+non terminal Declaration;
+
+non terminal TypeDecl, TypeDeclAux, TypeSpecAux, TypeSpec;
+non terminal OptAssign, OptAssignExpList;
+
+non terminal VarDecl, VarDeclAux, VarSpecAux, VarSpecAux2, VarSpec;
+
+non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
+non terminal FallthroughStmt, Block, DeferStmt, SelectStmt;
+non terminal CommClause, CommCase, StmtOpt, RecvStmt, RecvStmtAux, RecvStmtAux2;
+
+non terminal IfStmt, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
+non terminal SimpleStmtSc;
+
+non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimplesStmtStarAux;
+non terminal RangeClauseAux, RangeClauseAux2;
+non terminal SwitchStmt, SwitchStmtAux, SwitchStmtAux2, SwitchStmtSc;
+non terminal ExprCaseClause, ExprSwitchCase, TypeSwitchGuard, TypeCaseClause;
+non terminal OptTypeSwitchAux;
+non terminal TypeSwitchCase, AuxTypeList, TypeList;
 
 /* --------------- Tests ----------------------- */
 non terminal TypeStar;
 non terminal BasicLitStar;
 non terminal ExpressionStar;
 non terminal OperandStar;
+non terminal FunctionTypeStar;
 
 /*
 Precedence    Operator
@@ -135,7 +192,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with Expression;
+start with StatementList;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -180,59 +237,159 @@ Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
 Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
 
 
-
-
-
 /* --------------- Expression ------------------ */
+UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
+PrimaryExpr    ::= Operand | Conversion | PrimaryExpr PrimaryExprOtherOptions;  // Obs: Missing MethodExpr
+Expression     ::= UnaryExpr | Expression BinOp Expression;
 
-ExpressionStar ::= ExpressionStar Expression |;
+// Index, Slice and Arguments // Not TypeAssertion
+PrimaryExprOtherOptions ::= IndexAndSlice | Arguments; // NOT DOT PAR_L Type PAR_R;
 
-Expression ::= UnaryExpr | Expression BinOp Expression; // Expression = UnaryExpr | Expression binary_op Expression .
-UnaryExpr  ::= PrimaryExpr | UnaryOp UnaryExpr; // UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;
+ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
+OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!
+OptCommaExp    ::= COMMA ExpressionList;
 
-PrimaryExpr                ::= TypeName ConversionAux | OperandIncomplete | ConversionIncomplete | IF;
+IndexAndSlice  ::= SQRD_L Expression PossibleClose | SQRD_L PossibleClose2;
+PossibleClose  ::= SQRD_R | COLON OptExpression SQRD_R;
+PossibleClose2 ::= COLON SQRD_R | COLON Expression PossibleClose3;
+PossibleClose3 ::= COLON Expression SQRD_R;
 
-OperandIncomplete          ::= BasicLit | CompositeLitIncomplete | PAR_L Expression PAR_R;
+OptEllipsisComma    ::= ELLIPSIS | ELLIPSIS COMMA | ; // Obs: is possible a COMMA without an ellipsis
 
-CompositeLitIncomplete     ::= LiteralTypeIncomplete LiteralValue;
-LiteralTypeIncomplete      ::= StructType | ArrayType | SQRD_L ELLIPSIS SQRD_R ElementType | SliceType | MapType;
+OptExpression  ::= Expression |;
+OptExpression2 ::= SQRD_R | COLON OptExpression; 
+Index ::= SQRD_L Expression SQRD_R;
 
+ExpressionList ::= Expression ExpressionStar;
+ExpressionStar ::= COMMA Expression ExpressionStar |;
 
-ConversionIncomplete  ::= ConversionIncomplete2 PAR_L Expression OptComma PAR_R;
-ConversionIncomplete2 ::= TypeLit; // FIXME: Missing | PAR_L Type PAR_R;
+Conversion     ::= TypeConv NextConversion;
+NextConversion ::= PAR_L Expression OptComma PAR_R;
 
-ConversionAux         ::= PAR_L Expression OptComma PAR_R | LiteralValue |; // FIXME: empty
-//Conversion          ::= Type PAR_L Expression OptComma PAR_R;
+TypeConv ::= TypeName | TypeLit | INTERROGATION TypeConv INTERROGATION; // HOTFIX INTERROGATION
 
+OptDotIDENTIFIER ::= DOT IDENTIFIER | ;
 
+/* --------------- Const  -------------------------- */
+ConstDecl     ::= CONST AuxConstDecl1;
+AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
 
+ConstSpec     ::= IdentifierListStar2 AuxConstSpec2;
+AuxConstSpec  ::= AuxConstSpec ConstSpec SEMICOLON  | ;
 
+AuxCommaExp   ::= AuxCommaExp COMMA Expression | ;
+OptType       ::= Type | ;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+AuxConstSpec2       	  ::= OptType ASSIGN ExpressionList | ;
+IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER | ;
+IdentifierListStar2   ::= IDENTIFIER IdentifierListStarAux;
 
 
-/* --------------- Const ----------------------- */
-//ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
-// ConstDecl ::= CONST AuxConstDecl1;
-// AuxConstDecl1 ::= ConstSpec | PAR_L AuxConstSpec PAR_R;
-// AuxConstSpec ::= AuxConstSpec ConstSpec SEMICOLON  | ;
+/* --------------- Statement ----------------------- */
+Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt | 
+              BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block | 
+              IfStmt | SelectStmt | SwitchStmt | DeferStmt | ForStmt;
 
-//ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
-// ConstSpec ::= IdentifierList AuxConstSpec2;
+/* --------------- Declaration -------------------- */
+Declaration ::= ConstDecl | TypeDecl | VarDecl;
+
+TypeDecl      ::= TYPE TypeDeclAux;
+TypeDeclAux   ::= TypeSpec | PAR_L TypeSpecAux PAR_R;
+TypeSpecAux   ::= TypeSpecAux TypeSpec SEMICOLON | ;
+TypeSpec      ::= IDENTIFIER OptAssign Type;
+
+VarDecl       ::= VAR VarDeclAux;
+VarDeclAux    ::= VarSpec | PAR_L VarSpecAux PAR_R;
+VarSpecAux    ::= VarSpecAux VarSpec SEMICOLON | ;
+VarSpec       ::= IdentifierListStar2 VarSpecAux2;
+VarSpecAux2   ::= Type OptAssignExpList | ASSIGN ExpressionList;
+
+
+/* --------------- LabeledStmt -------------------- */
+LabeledStmt ::= IDENTIFIER COLON Statement;
+
+/* --------------- SimpleStmt --------------------- */
+SimpleStmt ::= Expression AuxExpression | Assignment | INTERROGATION ShortVarDecl |;  // HOT FIX INTERROGATION
+AuxExpression ::= CHANNEL_OP Expression | INC_OP | SUB_OP | PLUS PLUS | MINUS MINUS | ;
+Assignment ::= ExpressionList AssignOp ExpressionList;
+AssignOp ::= MUL_ASSIGN | ADD_ASSIGN | XOR_ASSIGN | DIV_ASSIGN |
+             LEFT_ASSIGN | RIGHT_ASSIGN | AND_NOT_ASSIGN | MINUS_ASSIGN | ADDRESS_ASSIGN |
+             ASSIGN; // Missing other types of assignment
+
+ShortVarDecl ::=  IdentifierList CHANNEL_ASSIGN ExpressionList;
+
+StatementList ::= Statement SEMICOLON StatementList | ;
+Block ::= CURLY_L StatementList CURLY_R;
+
+
+/* --------------- ForStmt --------------------- */
+ForStmt ::= FOR ForStmtAux BLANK_IDENTIFIER Block;           // HOT FIX BLANK_IDENTIFIER
+ForStmtAux ::= Expression | HASH ForClause | RangeClause |;  // HOT FIX HASH
+ForClause ::= SimpleStmt SEMICOLON OptExpression SEMICOLON SimpleStmt;
+
+SimplesStmtStarAux  ::= CHANNEL_OP Expression | INC_OP | SUB_OP | AuxCommaExp AssignOp ExpressionList;
+RangeClauseAux      ::= ExpressionList RangeClauseAux2 | ;
+RangeClauseAux2     ::= ASSIGN | CHANNEL_ASSIGN;
+RangeClause         ::= RangeClauseAux RANGE Expression;
+
+
+/* ------------------ SwitchStmt ------------------- */
+SwitchStmt ::= SWITCH SwitchStmtAux;
+
+SwitchStmtAux ::= SimpleStmtSc SwitchStmtAux2;
+SimpleStmtSc ::= SimpleStmt SEMICOLON;
+
+// HOT FIX BLANK_IDENTIFIER
+SwitchStmtAux2 ::= OptExpression BLANK_IDENTIFIER CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
+ExprCaseClause ::= ExprSwitchCase COLON StatementList ExprCaseClause |;
+
+// HOT FIX HASH
+TypeSwitchGuard ::= PrimaryExpr HASH DOT PAR_L TYPE PAR_R; // FIXME: missing identifier := opt
+
+TypeSwitchCase ::= CASE TypeList | DEFAULT;
+TypeCaseClause ::= TypeSwitchCase COLON StatementList | ;
+
+OptTypeSwitchAux ::= HASH IDENTIFIER CHANNEL_ASSIGN |;
+ExprSwitchCase ::= CASE ExpressionList | DEFAULT ;
+
+TypeList ::= Type AuxTypeList;
+AuxTypeList ::= COMMA Type AuxTypeList | ;
+
+/* ------------------ DeferStmt ------------------- */
+DeferStmt ::= DEFER Expression;
+
+/* ------------------ IfStmt ------------------- */
+IfStmt         ::= IF SimpleStmtAux Expression INTERROGATION Block IfStmtAux;  // HOTFIX Interrogation
+SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
+IfStmtAux      ::= ELSE IfStmtAux2 | ;
+IfStmtAux2     ::= IfStmt | Block;
+
+/* ------------------ SelectStmt ------------------- */
+SelectStmt  ::= SELECT CURLY_L CommClause CURLY_R;
+CommClause  ::= CommCase COLON StatementList CommClause | ;
+CommCase    ::= CASE StmtOpt | DEFAULT;
+StmtOpt     ::= Expression CHANNEL_OP Expression | RecvStmt;
+RecvStmt    ::= RecvStmtAux Expression;
+RecvStmtAux ::= ExpressionList RecvStmtAux2; //FIXME: could be empty, warning: wont fix
+RecvStmtAux2 ::= ASSIGN | CHANNEL_ASSIGN;    // Errors in this
+
+FallthroughStmt ::= FALLTHROUGH;
+
+GotoStmt ::= GOTO IDENTIFIER;
+
+ContinueStmt ::= CONTINUE Identifier;
+
+BreakStmt ::= BREAK Identifier;
+
+ExpressionListStar ::= ExpressionList | ;
+ReturnStmt ::= RETURN ExpressionListStar;
+
+GoStmt ::= GO Expression;
+
+
+OptAssign ::= ASSIGN | ;
+OptAssignExpList ::= ASSIGN ExpressionList | ;
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;
@@ -249,19 +406,19 @@ Tag ::= STRING_LITERAL;
 EmbeddedField1 ::= MUL TypeName;
 OptMul ::= MUL |;
 
-IdentifierList ::= Identifier IdentifierStar1 |;
+IdentifierList ::= Identifier IdentifierStar1;
 IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 
 TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName     ::= IDENTIFIER AuxTypeName1;
-AuxTypeName1 ::= DOT IDENTIFIER |;
+TypeName     ::= IDENTIFIER:i {: System.out.println("tn: " + i); :} AuxTypeName1;
+AuxTypeName1 ::= DOT IDENTIFIER:i {: System.out.println(i); :} |;
 
-TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType; // FIXME: Missing InterfaceType and FunctionType;
+TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType | FunctionType;
 
 /* --------------- Array ----------------------- */
-ArrayLength ::= INT_LITERAL; // FIXME: Array Length should be an Expression
+ArrayLength ::= Expression;
 ArrayType   ::= SQRD_L ArrayLength SQRD_R ElementType;
 ElementType ::= Type;
 
@@ -269,20 +426,33 @@ PointerType ::= MUL BaseType;
 BaseType    ::= Type;
 
 /* --------------- Function -------------------- */
-FunctionType   ::= FUNC Signature;
-Signature      ::= Parameters AuxResult;
-AuxResult      ::= Result |;
-Result         ::= Parameters | Type;
+FunctionTypeStar ::= FunctionTypeStar FunctionType |;
+FunctionType     ::= FUNC Signature;
+Signature        ::= Parameters AuxResult;
+AuxResult        ::= Result |;
 
-Parameters     ::= PAR_L AuxParameters1 PAR_R;
-AuxParameters1 ::= ParameterList OptComma |;
-OptComma       ::= COMMA |;
+Result         ::= HASH PAR_L AuxResult2 PAR_R | TypeLit | TypeName;   // HOTFIX HASH
+AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
+AuxResult3     ::= IdentifierStar3 | DOT Identifier;
 
-ParameterList     ::= ParameterDecl AuxParameterList1;
-AuxParameterList1 ::= AuxParameterList1 COMMA ParameterDecl |;
-ParameterDecl     ::= OptIdentifierList OptEllipsis Type;
-OptIdentifierList ::= FuncIdentifierList |;
-OptEllipsis       ::= ELLIPSIS |;
+Parameters          ::= PAR_L AuxParameters1 PAR_R;
+AuxParameters1      ::= ParameterList | ;
+OptComma            ::= COMMA |;
+
+ParameterList       ::= ParameterDecl;
+
+TypeNoIdentifier    ::= TypeLit | PAR_L Type PAR_R;
+ParameterDecl       ::= IdentifierListParam |
+					    ELLIPSIS Type ParameterDeclStar |
+					    TypeNoIdentifier ParameterDeclStar;
+
+ParameterDeclStar   ::= COMMA ParameterDecl | COMMA | ;
+IdentifierListParam ::= Identifier IdentifierStar3;  // include all posibilities
+IdentifierStar3     ::= IdentifierStar2 |;
+IdentifierStar2     ::= COMMA IdentifierStar4 |
+                        ELLIPSIS Type ParameterDeclStar |
+                        Type ParameterDeclStar;
+IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
 
 FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
 FuncIdentifierListAux1 ::= FuncIdentifierListAux1 COMMA Identifier |;
