@@ -19,7 +19,8 @@ public class TestSyntax {
 	//private static String sourcecode = "/core/src/syntax/tests/types.go";
 	//private static String sourcecode = "/core/src/syntax/tests/operand.go";
 	//private static String sourcecode = "/core/src/syntax/tests/functionType.go";
-	private static String sourcecode = "/core/src/syntax/tests/statement.go";
+	//private static String sourcecode = "/core/src/syntax/tests/statement.go";
+	private static String sourcecode = "/core/src/program.go";
 
 	public static void main(String[] args) {
 

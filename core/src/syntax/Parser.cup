@@ -89,7 +89,7 @@ non terminal MethodSpec, MethodSpecAux1, MethodSpecAux2;
 /* --------------- Optional -------------------- */
 non terminal OptMul;
 non terminal OptComma;
-non terminal OptIdentifierList;
+non terminal OptIdentifierList, OptIdentifier;
 non terminal OptEllipsisComma;
 
 /* --------------- Auxiliary ------------------- */
@@ -103,7 +103,7 @@ non terminal AuxChannelType1;
 non terminal AuxResult, AuxResult2, AuxResult3;
 
 /* --------------- Basics ---------------------- */
-non terminal BasicLit, CompositeLit;
+non terminal BasicLit, CompositeLit, FunctionLit;
 non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
 
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
@@ -129,6 +129,15 @@ non terminal PossibleClose, PossibleClose2, PossibleClose3;
 
 non terminal Arguments, ExpTypeEtc, OptExpType, OptCommaExp;
 
+/* --------------- Source and Import ----------- */
+non terminal SourceFile;
+non terminal PackageClause;
+non terminal ImportDecl, ImportDeclStar, ImportDeclAux1, ImportSpec, ImportSpecStar, ImportSpecAux1;
+
+/* --------------- Declarations ---------------- */
+non terminal Declaration, TopLevelDecl, TopLevelDeclStar;
+non terminal FunctionDecl, FunctionBodyOpt;
+non terminal MethodDecl;
 
 /* --------------- Operands -------------------- */
 non terminal Operand, OperandIncomplete;
@@ -148,7 +157,6 @@ non terminal OptType;
 non terminal Statement, StatementList, StatementListAux;
 non terminal SimpleStmt, ShortVarDecl, AuxExpression, Assignment, AssignOp, AuxOp;
 non terminal OptSimpleStmt;
-non terminal Declaration;
 
 non terminal TypeDecl, TypeDeclAux, TypeSpecAux, TypeSpec;
 non terminal OptAssign, OptAssignExpList;
@@ -192,7 +200,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with StatementList;
+start with SourceFile;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -224,18 +232,27 @@ KeyedElementAux3 ::= COLON Element;
 
 Element          ::= Expression | LiteralValue;
 
-/*
-Existe um elemento chamado Key na spec que é IDENTIFIER | Expression | LiteralValue. Mas
-eu tirei o IDENTIFIER porque Expression eventualmente leva em IDENTIFIER também. Expression -> UnaryExpr -> PrimaryExpr -> Operand -> TypeName -> IDENTIFIER
-dessa forma fica mais fácil de tirar a ambiguidade de Key e Element, se não seria muito difícil já que Expression também leva em IDENTIFIER.
-Deixar esse comentário aqui pra lembrar vocês de checarem se faz sentido.
-*/
+
+/* ----------------- Function Literal ------------ */
+FunctionLit ::= FUNC Signature Block;
+
+/* --------------- Source and Import ---------- */
+SourceFile ::= PackageClause SEMICOLON ImportDeclStar TopLevelDeclStar;
+
+ImportDeclStar ::= ImportDecl SEMICOLON ImportDeclStar |;
+ImportDecl ::= IMPORT ImportDeclAux1;
+ImportDeclAux1 ::= ImportSpec | PAR_L ImportSpecStar PAR_R;
+ImportSpecStar ::= ImportSpec SEMICOLON ImportSpecStar |;
+
+ImportSpec ::= ImportSpecAux1 STRING_LITERAL;
+ImportSpecAux1 ::= DOT | IDENTIFIER |;
+
+PackageClause ::= PACKAGE IDENTIFIER;
 
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
-Literal        ::= BasicLit | CompositeLit; //FIXME: FunctionLit;
-
+Literal        ::= BasicLit | CompositeLit | FunctionLit; //FIXME: FunctionLit;
 
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
@@ -292,6 +309,13 @@ Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt |
               IfStmt | SelectStmt | SwitchStmt | DeferStmt | ForStmt;
 
 /* --------------- Declaration -------------------- */
+TopLevelDeclStar ::= TopLevelDecl SEMICOLON TopLevelDeclStar |;
+TopLevelDecl ::= Declaration | FunctionDecl | MethodDecl;
+
+FunctionDecl ::= FUNC IDENTIFIER Signature FunctionBodyOpt;
+FunctionBodyOpt ::= Block |;
+
+MethodDecl ::= FUNC Parameters IDENTIFIER Signature FunctionBodyOpt;
 Declaration ::= ConstDecl | TypeDecl | VarDecl;
 
 TypeDecl      ::= TYPE TypeDeclAux;
@@ -374,13 +398,12 @@ RecvStmt    ::= RecvStmtAux Expression;
 RecvStmtAux ::= ExpressionList RecvStmtAux2; //FIXME: could be empty, warning: wont fix
 RecvStmtAux2 ::= ASSIGN | CHANNEL_ASSIGN;    // Errors in this
 
+/* ---------------- Other Statements --------------- */
+OptIdentifier ::= Identifier |;
 FallthroughStmt ::= FALLTHROUGH;
-
-GotoStmt ::= GOTO IDENTIFIER;
-
-ContinueStmt ::= CONTINUE Identifier;
-
-BreakStmt ::= BREAK Identifier;
+GotoStmt ::= GOTO OptIdentifier;
+ContinueStmt ::= CONTINUE OptIdentifier;
+BreakStmt ::= BREAK OptIdentifier;
 
 ExpressionListStar ::= ExpressionList | ;
 ReturnStmt ::= RETURN ExpressionListStar;
