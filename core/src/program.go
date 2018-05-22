@@ -1,25 +1,22 @@
-teste
-//Lorem // Ipsum if
-teste2
-// Lorem ipsum teste
-teste3
-/***/
-/*Lorem*/ /*ipsum*/
-teste4
-/*Lorem*/ //ips***um*/
-teste5
-/*
-  Comentario longo :)
-  
-  
-  asdasd
-  asdasd
-  asdsad
-*/
-teste6
-if asdasd
+package compiladores;
 
-teste7
-//Lorem // Ipsum if
+import "math";
+import   "lib/math";
+import m "lib/math";
+import . "lib/math";
 
-// Lorem ipsum teste
+// Function declaration
+func IndexRune(s string, r rune) int {
+};
+
+func IndexRune(s string, r rune) int {
+	break;
+};
+
+// Method declaration
+func (p *Point) Length() float64 {
+};
+
+func (p *Point) Scale(factor float64) {
+	break;
+};

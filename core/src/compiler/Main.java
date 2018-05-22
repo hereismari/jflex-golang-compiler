@@ -1,29 +1,36 @@
 package compiler;
 
-import syntax.Parser;
-import lexical.Lexer;
-
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Paths;
+
+import java_cup.runtime.ComplexSymbolFactory;
+import lexical.Lexer;
+import syntax.Parser;
 
 public class Main {
 
-    public static void main(String[] args) {
+	private static String sourcecode = "/core/src/program.go";
 
-        String rootPath = Paths.get("").toAbsolutePath().toString();
-        String subPath = "/src/";
+	public static void main(String[] args) {
+		try {
+			ComplexSymbolFactory csf = new ComplexSymbolFactory();
 
-        String sourcecode = rootPath + subPath + "Program.pg";
+			String rootPath = Paths.get("").toAbsolutePath().toString();
+			String sourceCode = rootPath + sourcecode;
+			FileInputStream stream = new FileInputStream(sourceCode);
+			Reader reader = new InputStreamReader(stream);
 
+			Lexer lexer = new Lexer(reader, csf);
+			Parser p = new Parser(lexer, csf);
+			System.out.println("Parser runs: ");
+			p.parse();
 
-        try {
-            Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
-            Object result = p.parse().value;
-
-            System.out.println("Compilacao concluida com sucesso...");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
+			System.out.println("Parsing finished!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println(e.getMessage());
+		}
+	}
 }
