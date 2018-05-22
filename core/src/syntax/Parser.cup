@@ -128,6 +128,15 @@ non terminal PossibleClose, PossibleClose2, PossibleClose3;
 
 non terminal Arguments, ExpTypeEtc, OptExpType, OptCommaExp;
 
+/* --------------- Source and Import ----------- */
+non terminal SourceFile;
+non terminal PackageClause;
+non terminal ImportDecl, ImportDeclStar, ImportDeclAux1, ImportSpec, ImportSpecStar, ImportSpecAux1;
+
+/* --------------- Declarations ---------------- */
+non terminal Declaration, TopLevelDecl, TopLevelDeclStar;
+non terminal FunctionDecl, FunctionBodyOpt;
+non terminal MethodDecl;
 
 /* --------------- Operands -------------------- */
 non terminal Operand;
@@ -161,7 +170,7 @@ precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
 precedence left CHANNEL_OP;
 
-start with ExpressionList;
+start with SourceFile;
 
 Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
@@ -193,12 +202,28 @@ KeyedElementAux3 ::= COLON Element;
 
 Element          ::= Expression | LiteralValue;
 
-/*
-Existe um elemento chamado Key na spec que é IDENTIFIER | Expression | LiteralValue. Mas
-eu tirei o IDENTIFIER porque Expression eventualmente leva em IDENTIFIER também. Expression -> UnaryExpr -> PrimaryExpr -> Operand -> TypeName -> IDENTIFIER
-dessa forma fica mais fácil de tirar a ambiguidade de Key e Element, se não seria muito difícil já que Expression também leva em IDENTIFIER.
-Deixar esse comentário aqui pra lembrar vocês de checarem se faz sentido.
-*/
+/* --------------- Source and Import ---------- */
+SourceFile ::= PackageClause SEMICOLON ImportDeclStar TopLevelDeclStar;
+
+ImportDeclStar ::= ImportDecl SEMICOLON ImportDeclStar |;
+ImportDecl ::= IMPORT ImportDeclAux1;
+ImportDeclAux1 ::= ImportSpec | PAR_L ImportSpecStar PAR_R;
+ImportSpecStar ::= ImportSpec SEMICOLON ImportSpecStar |;
+
+ImportSpec ::= ImportSpecAux1 STRING_LITERAL;
+ImportSpecAux1 ::= DOT | IDENTIFIER |;
+
+PackageClause ::= PACKAGE IDENTIFIER;
+
+/* --------------- Declarations ---------------- */
+TopLevelDeclStar ::= TopLevelDecl SEMICOLON TopLevelDeclStar |;
+TopLevelDecl ::= Declaration | FunctionDecl | MethodDecl;
+Declaration  ::= ConstDecl | TypeDecl | VarDecl;
+
+FunctionDecl ::= FUNC IDENTIFIER Signature FunctionBodyOpt;
+FunctionBodyOpt ::= Block |;
+
+MethodDecl ::= FUNC Parameters IDENTIFIER Signature FunctionBodyOpt;
 
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
