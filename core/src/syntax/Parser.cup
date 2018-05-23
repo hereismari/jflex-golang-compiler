@@ -173,6 +173,7 @@ non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimplesStmtStarAux;
 non terminal RangeClauseAux, RangeClauseAux2;
 non terminal SwitchStmt, SwitchStmtAux, SwitchStmtAux2, SwitchStmtSc;
 non terminal ExprCaseClause, ExprSwitchCase, TypeSwitchGuard, TypeCaseClause;
+non terminal OptTypeSwitchGuard;
 
 non terminal TypeSwitchCase, AuxTypeList, TypeList;
 
@@ -368,9 +369,11 @@ SwitchStmtAux2 ::= OptExpression DOUBLE_INTERROGATION CURLY_L ExprCaseClause CUR
 ExprCaseClause ::= ExprSwitchCase COLON StatementList ExprCaseClause |;
 
 // HOT FIX HASH
-TypeSwitchGuard    ::= PrimaryExpr HASH DOT PAR_L TYPE PAR_R; // FIXME(wontfix): missing identifier := opt
+TypeSwitchGuard    ::= OptTypeSwitchGuard PrimaryExpr HASH DOT PAR_L TYPE PAR_R;
+OptTypeSwitchGuard ::= Identifier CHANNEL_ASSIGN | HASH;
+
+TypeCaseClause     ::= TypeSwitchCase COLON StatementList TypeCaseClause | ;
 TypeSwitchCase     ::= CASE TypeList | DEFAULT;
-TypeCaseClause     ::= TypeSwitchCase COLON StatementList | ;
 
 ExprSwitchCase ::= CASE ExpressionList | DEFAULT ;
 
