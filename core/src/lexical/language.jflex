@@ -109,7 +109,7 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 //AuxInvalid = [^\r|\n|\r\n| | \t|\f]
 //AuxInvalidFirst = [^\r|\n|\r\n| | \t|\f|"`"|"\""|"'"]
 
-AuxInvalid = {Letter} | {DecimalDigit} | "-"
+AuxInvalid = {DecimalDigit} | {Letter}
 Invalid = {AuxInvalid}{AuxInvalid}*
 
 %%
