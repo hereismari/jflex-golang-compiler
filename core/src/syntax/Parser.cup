@@ -266,12 +266,12 @@ PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_
 Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;  // HOT FIX HASH
 ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
 OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!
-OptCommaExp    ::= COMMA ExpressionList;
+OptCommaExp    ::= COMMA ExpressionList |;
 
 IndexAndSlice  ::= SQRD_L Expression PossibleClose | SQRD_L PossibleClose2;
 PossibleClose  ::= SQRD_R | COLON OptExpression SQRD_R;
 PossibleClose2 ::= COLON SQRD_R | COLON Expression PossibleClose3;
-PossibleClose3 ::= COLON Expression SQRD_R;
+PossibleClose3 ::= COLON Expression SQRD_R | SQRD_R;
 
 OptEllipsisComma    ::= ELLIPSIS | ELLIPSIS COMMA | ; // Obs: is possible a COMMA without an ellipsis
 
