@@ -17,13 +17,13 @@ import (
 
 func main() {
 	fmt.Println#("Hello, 世界");
-	for ? i := 0; i < 10; i++ {
-	  for ? i := 0; i < 10; i++  {
+	for ? i := 0; i < 10; i++ ?? {
+	  for ? i := 0; i < 10; i++ ?? {
 	     x = 2 + 3;
 	     f(10);
-	     if # ? x := f#(); x < y  {
+	     if # ? x := f#(); x < y ?? {
         return x;
-      } else if x > z {
+      } else if x > z ?? {
         return z;
       } else {
         return y;
@@ -33,7 +33,7 @@ func main() {
   
   var x = 1;
   
-  for a < b {
+  for a < b ?? {
 	  a *= 2;
   };
   
