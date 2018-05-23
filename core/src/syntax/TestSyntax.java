@@ -16,8 +16,12 @@ public class TestSyntax {
 	//private static String sourcecode = "/core/src/syntax/tests/expressions.go";
 	//private static String sourcecode = "/core/src/syntax/tests/qualifiedIdentifier.go";
 	//private static String sourcecode = "/core/src/syntax/tests/TypeName.go";
-	private static String sourcecode = "/core/src/syntax/tests/types.go";
-	
+	//private static String sourcecode = "/core/src/syntax/tests/types.go";
+	//private static String sourcecode = "/core/src/syntax/tests/operand.go";
+	//private static String sourcecode = "/core/src/syntax/tests/functionType.go";
+	//private static String sourcecode = "/core/src/syntax/tests/statement.go";
+	private static String sourcecode = "/core/src/program.go";
+
 	public static void main(String[] args) {
 
 		try {
@@ -30,9 +34,10 @@ public class TestSyntax {
 
 			Lexer lexer = new Lexer(reader, csf);
 			// start parsing
-		    Parser p = new Parser(lexer,csf);
+		    Parser p = new Parser(lexer, csf);
 		    System.out.println("Parser runs: ");
 		    p.parse();
+		    // p.debug_parse();
 
 		    System.out.println("Parsing finished!");
 		} catch (Exception e) {

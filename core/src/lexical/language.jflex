@@ -204,8 +204,12 @@ Invalid = {AuxInvalid}{AuxInvalid}*
 "."                           { return symbol(DOT, "."); }
 ":"                           { return symbol(COLON, ":"); }
 
-// Other
+// HOT FIXES :) .................................... :(
+"?"                           { return symbol(INTERROGATION, "?"); }
+"#"                           { return symbol(HASH, "#"); }
+"??"                          { return symbol(DOUBLE_INTERROGATION, "??"); }
 
+// Other
 "_"                           { return symbol(BLANK_IDENTIFIER, "_"); }
 {Identifier}                  { return symbol(IDENTIFIER, yytext()); }
 
