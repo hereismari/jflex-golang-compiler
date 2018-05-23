@@ -6,15 +6,15 @@ import java.io.*;
 
 parser code {:
     public void report_error(String message, Object info){
-       StringBuffer m = new StringBuffer("ERRO SINTÁTICO EM: ");
+       StringBuffer m = new StringBuffer("Sintax error: ");
 
        if (info instanceof ComplexSymbol){
          ComplexSymbol s = (ComplexSymbol) info;
          if(s.value != null) m.append( s.value.toString() );
-         m.append( " - Linha: " + s.getLeft().getLine() + " - Coluna: "+s.getLeft().getColumn() );
+         m.append( " - Line: " + s.getLeft().getLine() + " - Column: "+s.getLeft().getColumn() );
          }
 
-       m.append(" : "+message);
+       m.append(" : " + message);
 
        System.err.println(m);
      }
