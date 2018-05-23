@@ -4,6 +4,21 @@ A Golang compiler implementation.
 
 ![](https://www.devteam.space/blog/wp-content/uploads/2017/03/gopher_head-min.png)
 
+
+## Hot Fixes :fire: !!!
+
+Precisamos utilizar 3 símbolos diferentes não existentes na linguagem GO para remover ambiguidades em casos recursivos relacionados a Expression, os símbolos são: **INTERROGATION (?), DOUBLE_INTERROGATION (??) e HASH (#)**.
+
+Utilizados nos seguintes casos:
+
+* Quando X -> B | Expression. E FIRST(B) incluso em Expression.
+  Esse caso é resolvido utilizando HASH antes de B ou de maneira similar. 6 regras foram modificados para esse caso.
+
+* Quando é possível ir para uma regra X onde FIRST(X) contém "( alfa" e também Expression. Esse caso é corrigido trocando a regra "( alfa " por INTERROGATION alfa. Utilizada apenas para 1 regra, Conversion.
+
+* Em conflitos com Expression e Block utilizamos ?? antes da definição do Block. 3 regras alteradas: For, If e Switch.
+
+
 ## Dependencies
 
 * Java 1.8.X
@@ -25,18 +40,8 @@ A Golang compiler implementation.
 
 ### Lexical Analysis
 
-```bash
-cd core/src/lexical/
-java -jar <path to jflex-1.6.1.jar> language.jflex
-```
+run core/src/lexical/Generator.java
 
 ### Syntax Analysis
 
-```bash
-cd core/src/syntax/
-java -jar <path to java-cup-11a.jar> -package syntax -parser Parser -symbols Sym -interface Parser.cup
-```
-
-### Run both Analysis
-
-Fix packages and imports for the files generated and run compiler/Main.py using your IDE.
+run core/src/syntax/Generator.java
