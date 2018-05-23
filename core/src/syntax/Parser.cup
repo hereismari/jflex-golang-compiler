@@ -53,6 +53,7 @@ terminal FLOAT_LITERAL, IDENTIFIER, BLANK_IDENTIFIER;
 // hot fixes
 terminal INTERROGATION;
 terminal HASH;
+terminal DOUBLE_INTERROGATION;
 
 /* --------------- Non terminals --------------- */
 
@@ -113,8 +114,6 @@ non terminal X, Y;
 non terminal Conversion, NextConversion;
 non terminal TypeConv;
 
-non terminal MethodExpr;
-
 non terminal OptDotIDENTIFIER;
 non terminal DotIdentifier, TypeNameDotIdentifier;
 non terminal AuxTypeNameDotIdentifier;
@@ -174,7 +173,7 @@ non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimplesStmtStarAux;
 non terminal RangeClauseAux, RangeClauseAux2;
 non terminal SwitchStmt, SwitchStmtAux, SwitchStmtAux2, SwitchStmtSc;
 non terminal ExprCaseClause, ExprSwitchCase, TypeSwitchGuard, TypeCaseClause;
-non terminal OptTypeSwitchAux;
+
 non terminal TypeSwitchCase, AuxTypeList, TypeList;
 
 /* --------------- Tests ----------------------- */
@@ -259,10 +258,10 @@ UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
 PrimaryExpr    ::= Operand | Conversion | PrimaryExpr PrimaryExprOtherOptions;  // Obs: Missing MethodExpr
 Expression     ::= UnaryExpr | Expression BinOp Expression;
 
-// Index, Slice and Arguments // Not TypeAssertion
-PrimaryExprOtherOptions ::= IndexAndSlice | Arguments; // NOT DOT PAR_L Type PAR_R;
+// Index, Slice and Arguments, HASH TypeAssertion
+PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
 
-Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;
+Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;  // HOT FIX HASH
 ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
 OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!
 OptCommaExp    ::= COMMA ExpressionList;
@@ -348,8 +347,8 @@ Block ::= CURLY_L StatementList CURLY_R;
 
 
 /* --------------- ForStmt --------------------- */
-ForStmt ::= FOR ForStmtAux BLANK_IDENTIFIER Block;           // HOT FIX BLANK_IDENTIFIER
-ForStmtAux ::= Expression | HASH ForClause | RangeClause |;  // HOT FIX HASH
+ForStmt ::= FOR ForStmtAux DOUBLE_INTERROGATION Block;           // HOT FIX DOUBLE_INTERROGATION
+ForStmtAux ::= Expression | ForClause | RangeClause |;
 ForClause ::= SimpleStmt SEMICOLON OptExpression SEMICOLON SimpleStmt;
 
 SimplesStmtStarAux  ::= CHANNEL_OP Expression | INC_OP | SUB_OP | AuxCommaExp AssignOp ExpressionList;
@@ -362,19 +361,17 @@ RangeClause         ::= RangeClauseAux RANGE Expression;
 SwitchStmt ::= SWITCH SwitchStmtAux;
 
 SwitchStmtAux ::= SimpleStmtSc SwitchStmtAux2;
-SimpleStmtSc ::= SimpleStmt SEMICOLON;
+SimpleStmtSc ::= SimpleStmt SEMICOLON | HASH; // HOT FIX HASH
 
 // HOT FIX BLANK_IDENTIFIER
-SwitchStmtAux2 ::= OptExpression BLANK_IDENTIFIER CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
+SwitchStmtAux2 ::= OptExpression DOUBLE_INTERROGATION CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
 ExprCaseClause ::= ExprSwitchCase COLON StatementList ExprCaseClause |;
 
 // HOT FIX HASH
-TypeSwitchGuard ::= PrimaryExpr HASH DOT PAR_L TYPE PAR_R; // FIXME: missing identifier := opt
+TypeSwitchGuard    ::= PrimaryExpr HASH DOT PAR_L TYPE PAR_R; // FIXME(wontfix): missing identifier := opt
+TypeSwitchCase     ::= CASE TypeList | DEFAULT;
+TypeCaseClause     ::= TypeSwitchCase COLON StatementList | ;
 
-TypeSwitchCase ::= CASE TypeList | DEFAULT;
-TypeCaseClause ::= TypeSwitchCase COLON StatementList | ;
-
-OptTypeSwitchAux ::= HASH IDENTIFIER CHANNEL_ASSIGN |;
 ExprSwitchCase ::= CASE ExpressionList | DEFAULT ;
 
 TypeList ::= Type AuxTypeList;
@@ -384,7 +381,7 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF SimpleStmtAux Expression INTERROGATION Block IfStmtAux;  // HOTFIX Interrogation
+IfStmt         ::= IF SimpleStmtAux Expression DOUBLE_INTERROGATION Block IfStmtAux;  // HOTFIX Interrogation
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 IfStmtAux      ::= ELSE IfStmtAux2 | ;
 IfStmtAux2     ::= IfStmt | Block;
@@ -435,8 +432,8 @@ IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 TypeStar ::= Type TypeStar |;
 Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
 
-TypeName     ::= IDENTIFIER:i {: System.out.println("tn: " + i); :} AuxTypeName1;
-AuxTypeName1 ::= DOT IDENTIFIER:i {: System.out.println(i); :} |;
+TypeName     ::= IDENTIFIER AuxTypeName1 | BLANK_IDENTIFIER;
+AuxTypeName1 ::= DOT IDENTIFIER |;
 
 TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType | FunctionType;
 
@@ -449,7 +446,6 @@ PointerType ::= MUL BaseType;
 BaseType    ::= Type;
 
 /* --------------- Function -------------------- */
-FunctionTypeStar ::= FunctionTypeStar FunctionType |;
 FunctionType     ::= FUNC Signature;
 Signature        ::= Parameters AuxResult;
 AuxResult        ::= Result |;
