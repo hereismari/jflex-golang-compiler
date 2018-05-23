@@ -1708,7 +1708,7 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     public void report_error(String message, Object info){
-       StringBuffer m = new StringBuffer("Sintax error: ");
+       StringBuffer m = new StringBuffer("Syntax error: ");
 
        if (info instanceof ComplexSymbol){
          ComplexSymbol s = (ComplexSymbol) info;
