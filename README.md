@@ -11,8 +11,7 @@ Precisamos utilizar 3 símbolos diferentes não existentes na linguagem GO para 
 
 Utilizados nos seguintes casos:
 
-* Quando X -> B | Expression. E FIRST(B) incluso em FIRST(Expression).
-  Esse caso é resolvido utilizando HASH antes de B ou de maneira similar. 6 regras foram modificados para esse caso.
+* Quando X -> B | Expression. E FIRST(B) incluso em FIRST(Expression).Esse caso é resolvido utilizando HASH antes de B ou de maneira similar. Quando X -> Expression (Y | ) Expression, transformamos em X -> Expression (Y | HASH) Expression. 7 regras foram modificados para esse caso.
 
 * Quando é possível ir para uma regra X onde FIRST(X) contém "( alfa" e também Expression. Esse caso é corrigido trocando a regra "( alfa " por INTERROGATION alfa. Utilizada apenas para 1 regra: Conversion.
 
