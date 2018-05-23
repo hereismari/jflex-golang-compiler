@@ -1,11 +1,11 @@
 teste
 1break
 1teste
+123123a // error
 1t     // error
-1break
 ?t     // error
 compila  // ok
-1teste // error
 !teste // not error
 *teste // not error
 _teste // ok
+_     // ok
