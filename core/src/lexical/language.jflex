@@ -197,6 +197,7 @@ Identifier     = {Letter}({Letter} | {UnicodeDigit})*
 // HOT FIXES :) .................................... :(
 "?"                           { return symbol(INTERROGATION, "?"); }
 "#"                           { return symbol(HASH, "#"); }
+"??"                          { return symbol(DOUBLE_INTERROGATION, "??"); }
 
 // Other
 "_"                           { return symbol(BLANK_IDENTIFIER, "_"); }
