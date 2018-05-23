@@ -198,7 +198,8 @@ precedence left AND;
 precedence left EQ_OP, NE_OP, LT, LTE, GT, GTE;
 precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
-precedence left CHANNEL_OP;
+
+precedence left CHANNEL_OP;  // HOTFIX: Franklin has given permition.
 
 start with SourceFile;
 
