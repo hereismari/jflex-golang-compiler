@@ -17,13 +17,13 @@ import (
 
 func main() {
 	fmt.Println#("Hello, 世界");
-	for ? i := 0; i < 10; i++ {
-	  for ? i := 0; i < 10; i++  {
+	for ? i := 0; i < 10; i++ ?? {
+	  for ? i := 0; i < 10; i++ ?? {
 	     x = 2 + 3;
 	     f(10);
-	     if # ? x := f#(); x < y  {
+	     if # ? x := f#(); x < y ?? {
         return x;
-      } else if x > z {
+      } else if x > z ?? {
         return z;
       } else {
         return y;
@@ -33,7 +33,7 @@ func main() {
   
   var x = 1;
   
-  for a < b {
+  for a < b ?? {
 	  a *= 2;
   };
   
@@ -42,28 +42,28 @@ func main() {
   var a, b, c, d int;  // create variables
   ? _, err := fmt.Scanf#("%d %d %d %d", &a, &b, &c, &d);  // read variable and check for errors
   
-  if err != nil { 
+  if err != nil ?? { 
     fmt.Println#("%f", err);
   };
 
-  if b > c && d > a && c + d > a + b && c > 0 && d > 0 && a % 2 == 0 {
+  if b > c && d > a && c + d > a + b && c > 0 && d > 0 && a % 2 == 0 ?? {
     fmt.Println#("Valores aceitos");
   } else {
     fmt.Println#("Valores nao aceitos");
   };
   
-  switch tag; {
+  switch tag; ?? {
     default: f#();
     case 0, 1, 2, 3: s1#();
     case 4, 5, 6, 7: s2#();
   };
 
-  switch ? x := f#(); {  // missing switch expression means "true"
+  switch ? x := f#(); ?? {  // missing switch expression means "true"
     case x < 0: return -x;
     default: return x;
   };
 
-  switch # {
+  switch # ?? {
     case x < y: f1#();
     case x < z: f2#();
     case x == 4: f3#();
@@ -87,19 +87,19 @@ func main() {
   
   
   ? v := x;  // x is evaluated exactly once
-  if v == nil {
+  if v == nil ?? {
 	  ? i := v;                                 // type of i is type of x (interface{})
 	  printString("x is nil");
-  } else if # ? i, isInt := v#.(int); isInt {
+  } else if # ? i, isInt := v#.(int); isInt ?? {
 	  printInt(i);                            // type of i is int
-  } else if # ? i, isFloat64 := v#.(float64); isFloat64 {
+  } else if # ? i, isFloat64 := v#.(float64); isFloat64 ?? {
 	  printFloat64(i);                        // type of i is float64
-  } else if # ? i, isFunc := v#.(func(int) float64); isFunc {
+  } else if # ? i, isFunc := v#.(func(int) float64); isFunc ?? {
 	  printFunction(i);                       // type of i is func(int) float64
   } else {
 	  ? _, isBool := v#.(bool);
 	  ? _, isString := v#.(string);
-	  if isBool || isString {
+	  if isBool || isString ?? {
 		  ? i := v;                         // type of i is type of x (interface{})
 		  printString("type is bool or string");
 	  } else {
@@ -155,23 +155,23 @@ func main() {
 func main() {
     // The most basic type, with a single condition.
     ? i := 1;
-    for i <= 3 {
+    for i <= 3 ?? {
         fmt.Println#(i);
         i = i + 1;
     };
 
     // A classic initial/condition/after `for` loop.
-    for ? j := 7; j <= 9; j++ {
+    for ? j := 7; j <= 9; j++ ?? {
         fmt.Println#(j);
     };
 
-    for {
+    for ?? {
         fmt.Println#("loop");
         break;
     };
 
-    for ? n := 0; n <= 5; n++ {
-        if n%2 == 0 {
+    for ? n := 0; n <= 5; n++ ?? {
+        if n%2 == 0 ?? {
             continue;
         };
         fmt.Println#(n);
@@ -188,11 +188,12 @@ func main() {
 
     fmt.Println#("len:", len(a));
 
+    ? b := [5]int{1, 2, 3, 4, 5};
     fmt.Println#("dcl:", b);
 
     var twoD [2][3]int;
-    for ? i := 0; i < 2; i++ {
-        for ? j := 0; j < 3; j++ {
+    for ? i := 0; i < 2; i++ ?? {
+        for ? j := 0; j < 3; j++ ?? {
             twoD[i][j] = i + j;
         };
     };
@@ -228,13 +229,14 @@ func main() {
     l = s[2:];
     fmt.Println#("sl3:", l);
 
+    ? t := []string{"g", "h", "i"};
     fmt.Println#("dcl:", t);
 
     ? twoD := make#([][]int, 3);
-    for ? i := 0; i < 3; i++ {
+    for ? i := 0; i < 3; i++ ?? {
         ? innerLen := i + 1;
         twoD[i] = make#([]int, innerLen);
-        for ? j := 0; j < innerLen; j++ {
+        for ? j := 0; j < innerLen; j++ ?? {
             twoD[i][j] = i + j;
         };
     };
@@ -260,31 +262,34 @@ func main() {
     ? _, prs := m["k2"];
     fmt.Println#("prs:", prs);
 
+    ? n := map[string]int{"foo": 1, "bar": 2};
     fmt.Println#("map:", n);
 };
 
 func main() {
+    ? nums := []int{2, 3, 4};
     ? sum := 0;
-    for _, num := range nums {
+    for _, num := range nums ?? {
         sum += num;
     };
     fmt.Println#("sum:", sum);
 
-    for i, num := range nums {
-        if num == 3 {
+    for i, num := range nums ?? {
+        if num == 3 ?? {
             fmt.Println#("index:", i);
         };
     };
 
-    for k, v := range kvs {
+    ? kvs := map[string]string{"a": "apple", "b": "banana"};
+    for k, v := range kvs ?? {
         fmt.Printf#("%s -> %s\n", k, v);
     };
 
-    for k := range kvs {
+    for k := range kvs ?? {
         fmt.Println#("key:", k);
     };
 
-    for i, c := range "go" {
+    for i, c := range "go" ?? {
         fmt.Println#(i, c);
     };
 };
@@ -301,7 +306,7 @@ func main() {
 func sum(nums ...int) {
     fmt.Print#(nums, " ");
     ? total := 0;
-    for _, num := range nums {
+    for _, num := range nums ?? {
         total += num;
     };
     fmt.Println#(total);
@@ -311,6 +316,7 @@ func main() {
     sum#(1, 2);
     sum#(1, 2, 3);
 
+    ? nums := []int{1, 2, 3, 4};
     sum#(nums...);
 };
 
@@ -341,6 +347,12 @@ type person struct {
 };
 
 func main() {
+    fmt.Println#(person{"Bob", 20});
+    fmt.Println#(person{name: "Alice", age: 30});
+    fmt.Println#(person{name: "Fred"});
+    fmt.Println#(&person{name: "Ann", age: 40});
+
+    ? s := person{name: "Sean", age: 50};
     fmt.Println#(s.name);
 
     ? sp := &s;
@@ -366,6 +378,7 @@ func (r rect) perim() int {
 };
 
 func main() {
+    ? r := rect{width: 10, height: 5};
 
     // Here we call the 2 methods defined for our struct.
     fmt.Println#("area: ", r.area#());
@@ -409,13 +422,15 @@ func measure(g geometry) {
 };
 
 func main() {
+    ? r := rect{width: 3, height: 4};
+    ? c := circle{radius: 5};
 
     measure#(r);
     measure#(c);
 };
 
 func f(from string) {
-    for ? i := 0; i < 3; i++ {
+    for ? i := 0; i < 3; i++ ?? {
         fmt.Println#(from, ":", i);
     };
 };
@@ -446,7 +461,7 @@ func main() {
         c2 <- "two";
     }#();
 
-    for ? i := 0; i < 2; i++ {
+    for ? i := 0; i < 2; i++ ?? {
         select {
         case msg1 := <-c1:
             fmt.Println#("received", msg1);

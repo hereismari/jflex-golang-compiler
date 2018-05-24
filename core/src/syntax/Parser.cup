@@ -253,7 +253,7 @@ PackageClause ::= PACKAGE IDENTIFIER;
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
-Literal        ::= BasicLit | CompositeLit | FunctionLit; //FIXME: FunctionLit;
+Literal        ::= BasicLit | FunctionLit;
 
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
@@ -349,7 +349,7 @@ Block ::= CURLY_L StatementList CURLY_R;
 
 
 /* --------------- ForStmt --------------------- */
-ForStmt ::= FOR ForStmtAux DOUBLE_INTERROGATION Block;           // HOT FIX DOUBLE_INTERROGATION
+ForStmt ::= FOR ForStmtAux Block;
 ForStmtAux ::= Expression | ForClause | RangeClause |;
 ForClause ::= SimpleStmt SEMICOLON OptExpression SEMICOLON SimpleStmt;
 
@@ -365,8 +365,7 @@ SwitchStmt ::= SWITCH SwitchStmtAux;
 SwitchStmtAux ::= SimpleStmtSc SwitchStmtAux2;
 SimpleStmtSc ::= SimpleStmt SEMICOLON | HASH; // HOT FIX HASH
 
-// HOT FIX BLANK_IDENTIFIER
-SwitchStmtAux2 ::= OptExpression DOUBLE_INTERROGATION CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
+SwitchStmtAux2 ::= OptExpression CURLY_L ExprCaseClause CURLY_R | TypeSwitchGuard CURLY_L TypeCaseClause CURLY_R;
 ExprCaseClause ::= ExprSwitchCase COLON StatementList ExprCaseClause |;
 
 // HOT FIX HASH
@@ -385,7 +384,7 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF SimpleStmtAux Expression DOUBLE_INTERROGATION Block IfStmtAux;  // HOTFIX Interrogation
+IfStmt         ::= IF SimpleStmtAux Expression Block IfStmtAux;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 IfStmtAux      ::= ELSE IfStmtAux2 | ;
 IfStmtAux2     ::= IfStmt | Block;
