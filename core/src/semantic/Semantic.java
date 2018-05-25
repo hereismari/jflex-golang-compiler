@@ -6,13 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import semantic.models.Type;
-import semantic.models.Variable;
 
 public class Semantic {
 
 	private static Semantic semantic = new Semantic();
 	private Map<String, Type> variables = new HashMap<>();
-	private List<String> variablesNames = new ArrayList<>();
+	private List<String> varNamesBuffer = new ArrayList<>();
 
 	private Semantic() {
 	}
@@ -21,21 +20,24 @@ public class Semantic {
 		return semantic;
 	}
 
-	public void addVariable(Variable v) {
-		variables.put(v.getName(), v.getType());
-	}
-
 	public Map<String, Type> getVariables() {
 		return variables;
 	}
 
-	public void addVariableName(String varName) {
-		variablesNames.add(varName);
+	public void addVarName(String varName) {
+		varNamesBuffer.add(varName);
+	}
+
+	public void addTypeToVars(Type type) {
+		for (String varName : this.varNamesBuffer) {
+			this.variables.put(varName, type);
+		}
+		this.varNamesBuffer.clear();
 	}
 
 	public void printVars() {
-		for (int i = 0; i < variablesNames.size(); i++) {
-			System.out.println(variablesNames.get(i));
+		for (String varName : this.variables.keySet()) {
+			System.out.println("Name: " + varName + ", Type: " + this.variables.get(varName));
 		}
 	}
 }

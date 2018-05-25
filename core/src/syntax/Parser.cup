@@ -298,9 +298,9 @@ AuxCommaExp   ::= AuxCommaExp COMMA Expression | ;
 OptType       ::= Type | ;
 
 AuxConstSpec2       	  ::= OptType ASSIGN ExpressionList | ;
-IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER:id {: Semantic.getInstance().addVariableName(id.toString()); :}
+IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER:id {: Semantic.getInstance().addVarName(id.toString()); :}
                           |;
-IdentifierListStar2   ::= IDENTIFIER:id {: Semantic.getInstance().addVariableName(id.toString()); :}
+IdentifierListStar2   ::= IDENTIFIER:id {: Semantic.getInstance().addVarName(id.toString()); :}
                           IdentifierListStarAux;
 
 
@@ -327,9 +327,12 @@ TypeSpec      ::= IDENTIFIER OptAssign Type;
 VarDecl       ::= VAR VarDeclAux;
 VarDeclAux    ::= VarSpec | PAR_L VarSpecAux PAR_R;
 VarSpecAux    ::= VarSpecAux VarSpec SEMICOLON | ;
-VarSpec       ::= IdentifierListStar2 {: Semantic.getInstance().printVars(); :}
-                  VarSpecAux2;
-VarSpecAux2   ::= Type OptAssignExpList | ASSIGN ExpressionList;
+VarSpec       ::= IdentifierListStar2 VarSpecAux2 {: Semantic.getInstance().printVars(); :};
+VarSpecAux2   ::= Type:t
+                  {: Type type = Type.convertToType(t.toString());
+                     Semantic.getInstance().addTypeToVars(type); :}
+                  OptAssignExpList
+                  | ASSIGN ExpressionList;
 
 
 /* --------------- LabeledStmt -------------------- */
@@ -434,10 +437,13 @@ IdentifierList ::= Identifier IdentifierStar1;
 IdentifierStar1 ::= COMMA Identifier IdentifierStar1 |;
 
 TypeStar ::= Type TypeStar |;
-Type ::= TypeName | TypeLit | PAR_L Type PAR_R;
+Type ::= TypeName:tn {: RESULT = tn; :}
+         | TypeLit | PAR_L Type PAR_R;
 
-TypeName     ::= IDENTIFIER AuxTypeName1 | BLANK_IDENTIFIER;
-AuxTypeName1 ::= DOT IDENTIFIER |;
+TypeName     ::= IDENTIFIER:id AuxTypeName1:dotid {: RESULT = id.toString() + dotid.toString(); :}
+                 | BLANK_IDENTIFIER:b {: RESULT = b; :};
+AuxTypeName1 ::= DOT IDENTIFIER:id {: RESULT = "." + id.toString(); :}
+                 | {: RESULT = ""; :};
 
 TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType | FunctionType;
 
