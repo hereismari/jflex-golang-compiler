@@ -1,25 +1,23 @@
-import java_cup.runtime.*;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
-
-import java.util.*;
-import java.io.*;
+import semantic.*;
+import semantic.models.*;
 
 parser code {:
-    public void report_error(String message, Object info){
-       StringBuffer m = new StringBuffer("Syntax error: ");
+    public void report_error(String message, Object info) {
+        StringBuffer m = new StringBuffer("Syntax error: ");
 
-       if (info instanceof ComplexSymbol){
-         ComplexSymbol s = (ComplexSymbol) info;
-         if(s.value != null) m.append( s.value.toString() );
-         m.append( " - Line: " + s.getLeft().getLine() + " - Column: "+s.getLeft().getColumn() );
-         }
+        if (info instanceof ComplexSymbol) {
+            ComplexSymbol s = (ComplexSymbol) info;
+            if(s.value != null) m.append( s.value.toString() );
+            m.append( " - Line: " + s.getLeft().getLine() + " - Column: " + s.getLeft().getColumn() );
+        }
 
-       m.append(" : " + message);
+        m.append(" : " + message);
 
-       System.err.println(m);
-     }
+        System.err.println(m);
+    }
 
-    public void report_fatal_error(String message, Object info)  {
+    public void report_fatal_error(String message, Object info) {
         System.out.println("Error - " + message);
         System.exit(-1);
     }
@@ -234,7 +232,7 @@ KeyedElementAux3 ::= COLON Element;
 Element          ::= Expression | LiteralValue;
 
 
-/* ----------------- Function Literal ------------ */
+/* --------------- Function Literal ----------- */
 FunctionLit ::= FUNC Signature Block;
 
 /* --------------- Source and Import ---------- */
@@ -300,8 +298,10 @@ AuxCommaExp   ::= AuxCommaExp COMMA Expression | ;
 OptType       ::= Type | ;
 
 AuxConstSpec2       	  ::= OptType ASSIGN ExpressionList | ;
-IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER | ;
-IdentifierListStar2   ::= IDENTIFIER IdentifierListStarAux;
+IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER:id {: Semantic.getInstance().addVariableName(id.toString()); :}
+                          |;
+IdentifierListStar2   ::= IDENTIFIER:id {: Semantic.getInstance().addVariableName(id.toString()); :}
+                          IdentifierListStarAux;
 
 
 /* --------------- Statement ----------------------- */
@@ -327,7 +327,8 @@ TypeSpec      ::= IDENTIFIER OptAssign Type;
 VarDecl       ::= VAR VarDeclAux;
 VarDeclAux    ::= VarSpec | PAR_L VarSpecAux PAR_R;
 VarSpecAux    ::= VarSpecAux VarSpec SEMICOLON | ;
-VarSpec       ::= IdentifierListStar2 VarSpecAux2;
+VarSpec       ::= IdentifierListStar2 {: Semantic.getInstance().printVars(); :}
+                  VarSpecAux2;
 VarSpecAux2   ::= Type OptAssignExpList | ASSIGN ExpressionList;
 
 
