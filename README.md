@@ -4,8 +4,25 @@ A Golang compiler implementation.
 
 ![](https://www.devteam.space/blog/wp-content/uploads/2017/03/gopher_head-min.png)
 
+## Semantic Analysis (portuguese only)
 
-## Hot Fixes :fire: !!!
+* escopo comum
+   * Realizar checagem de tipos e contextos:
+     - [ ] Tipos existentes;
+     - [ ] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
+     - [ ] Declaração e uso de Variáveis;
+     - [ ] Comandos de atribuição;
+     - [ ] Expressões aritméticas;
+     - [ ] literais (inteiros, string, booleanos).
+
+* escopo A
+     - [ ] Funções
+     - [ ] Expressões relacionais
+     - [ ] Comandos condicionais: if-else
+
+## Syntax Analysis (portuguese only)
+
+### Hot Fixes :fire: !!!
 
 Precisamos utilizar 3 símbolos diferentes não existentes na linguagem GO para remover ambiguidades em casos recursivos relacionados a Expression, os símbolos são: **INTERROGATION (?), DOUBLE_INTERROGATION (??) e HASH (#)**.
 
@@ -15,8 +32,7 @@ Utilizados nos seguintes casos:
 
 * Quando é possível ir para uma regra X onde FIRST(X) contém "( alfa" e também Expression. Esse caso é corrigido trocando a regra "( alfa " por INTERROGATION alfa. Utilizada apenas para 1 regra: Conversion.
 
-* Em conflitos com Expression e Block utilizamos ?? antes da definição do Block. 3 regras alteradas: For, If e Switch.
-
+* **Para resolver conflitos com CURLY_L, CompositeLit foi retirado da gramática.** (Em conflitos com Expression e Block utilizamos ?? antes da definição do Block. 3 regras alteradas: For, If e Switch.)
 
 ## Dependencies
 
