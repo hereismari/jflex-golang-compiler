@@ -1,7 +1,7 @@
 package semantic.models;
 
 public enum Type {
-	INT("int"), STRING("string");
+	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64");
 
 	private final String name;
 
@@ -19,6 +19,9 @@ public enum Type {
 				return type;
 			}
 		}
+		
+		System.err.println("Semantic error, Invalid type: " + typeName);
+		
 		return null;
 	}
 }
