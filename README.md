@@ -10,7 +10,8 @@ A Golang compiler implementation.
    * Realizar checagem de tipos e contextos:
      - [ ] Tipos existentes;
      - [ ] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
-     - [ ] Declaração e uso de Variáveis;
+     - [X] Declaração;
+     - [ ] Uso de Variáveis;
      - [ ] Comandos de atribuição;
      - [ ] Expressões aritméticas;
      - [ ] literais (inteiros, string, booleanos).
