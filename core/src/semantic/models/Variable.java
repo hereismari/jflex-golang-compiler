@@ -1,28 +1,29 @@
 package semantic.models;
 
-public class Variable {
+public class Variable extends TypedEntity {
 
-	private Type type;
-	private String name;
-
+	private String value;
+	
 	public Variable(Type type, String name) {
-		this.type = type;
-		this.name = name;
+		super(type, name);
+		
+		if(type == type.FLOAT32 || type == type.INT) {
+			this.value = "0";
+		} else if (type == type.STRING) {
+			this.value = "";
+		}
 	}
-
-	public Type getType() {
-		return type;
+	
+	public Variable(Type type, String name, String value) {
+		super(type, name);
+		this.value = value;
 	}
-
-	public void setType(Type type) {
-		this.type = type;
+	
+	public String getValue() {
+		return value;
 	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
+	
+	public void setValue(String value) {
+		this.value = value;
 	}
 }

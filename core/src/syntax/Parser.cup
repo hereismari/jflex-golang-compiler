@@ -3,6 +3,7 @@ import semantic.*;
 import semantic.models.*;
 
 parser code {:
+
     public void report_error(String message, Object info) {
         StringBuffer m = new StringBuffer("Syntax error: ");
 
@@ -207,7 +208,12 @@ Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
 
 /* --------------- Operation ------------------- */
 BasicLitStar ::= BasicLit BasicLitStar |;
-BasicLit     ::= INT_LITERAL | FLOAT_LITERAL | IMG_LITERAL | RUNE_LITERAL | STRING_LITERAL;
+
+BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.INT, i.toString());       RESULT = intLit;    :}
+                 | FLOAT_LITERAL:f  {: Expression floatLit = new Expression(Type.FLOAT32, f.toString()); RESULT = floatLit;  :}
+                 | IMG_LITERAL
+                 | RUNE_LITERAL
+                 | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit;  :};
 
 UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
 MulOp    ::= MUL | DIV | MOD | LEFT_OP | RIGHT_OP | ADDRESS | AND_NOT_OP;
@@ -250,13 +256,23 @@ PackageClause ::= PACKAGE IDENTIFIER;
 
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
-Operand        ::= Literal | TypeName | PAR_L Expression PAR_R;
-Literal        ::= BasicLit | FunctionLit;
+Operand        ::= Literal:lit                 {: RESULT = lit; :}
+                   | TypeName:tn               {: Expression expTn = new Expression(Type.UNKNOWN, tn.toString(), tn.toString()); RESULT = expTn;  :}
+                   | PAR_L Expression:e PAR_R  {: RESULT = e;   :};
+
+Literal        ::= BasicLit:blit {: RESULT = blit; :}
+				   | FunctionLit; // BasicLit removed
 
 /* --------------- Expression ------------------ */
-UnaryExpr      ::= PrimaryExpr | UnaryOp UnaryExpr;
-PrimaryExpr    ::= Operand | Conversion | PrimaryExpr PrimaryExprOtherOptions;  // Obs: Missing MethodExpr
-Expression     ::= UnaryExpr | Expression BinOp Expression;
+UnaryExpr      ::= PrimaryExpr:pexp       {: RESULT = pexp; :}
+                   | UnaryOp UnaryExpr;
+ 
+PrimaryExpr    ::= Operand:op                            {: RESULT = op; :}
+                   | Conversion                          {: RESULT = ""; :}
+                   | PrimaryExpr PrimaryExprOtherOptions {: RESULT = "" ;:};  // Obs: Missing MethodExpr
+
+Expression     ::= UnaryExpr:uexp  {: RESULT = uexp; :}
+				   | Expression BinOp Expression;
 
 // Index, Slice and Arguments, HASH TypeAssertion
 PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
@@ -277,8 +293,9 @@ OptExpression  ::= Expression |;
 OptExpression2 ::= SQRD_R | COLON OptExpression; 
 Index ::= SQRD_L Expression SQRD_R;
 
-ExpressionList ::= Expression ExpressionStar;
-ExpressionStar ::= COMMA Expression ExpressionStar |;
+ExpressionList ::= Expression:exp ExpressionStar:exps         {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp.toString() + exps.toString(); :} ;
+ExpressionStar ::= COMMA:c Expression:exp ExpressionStar:exps {: Semantic.getInstance().addExpression((Expression) exp); RESULT = ", " + exp.toString() + exps.toString(); :}
+                   |                                          {: RESULT = ""; :} ;
 
 Conversion     ::= TypeConv NextConversion;
 NextConversion ::= PAR_L Expression OptComma PAR_R;
@@ -300,8 +317,7 @@ OptType       ::= Type | ;
 AuxConstSpec2       	  ::= OptType ASSIGN ExpressionList | ;
 IdentifierListStarAux ::= IdentifierListStarAux COMMA IDENTIFIER:id {: Semantic.getInstance().addVarName(id.toString()); :}
                           |;
-IdentifierListStar2   ::= IDENTIFIER:id {: Semantic.getInstance().addVarName(id.toString()); :}
-                          IdentifierListStarAux;
+IdentifierListStar2   ::= IDENTIFIER:id {: Semantic.getInstance().addVarName(id.toString()); :} IdentifierListStarAux;
 
 
 /* --------------- Statement ----------------------- */
@@ -327,13 +343,10 @@ TypeSpec      ::= IDENTIFIER OptAssign Type;
 VarDecl       ::= VAR VarDeclAux;
 VarDeclAux    ::= VarSpec | PAR_L VarSpecAux PAR_R;
 VarSpecAux    ::= VarSpecAux VarSpec SEMICOLON | ;
-VarSpec       ::= IdentifierListStar2 VarSpecAux2 {: Semantic.getInstance().printVars(); :};
-VarSpecAux2   ::= Type:t
-                  {: Type type = Type.convertToType(t.toString());
-                     Semantic.getInstance().addTypeToVars(type); :}
-                  OptAssignExpList
-                  | ASSIGN ExpressionList;
 
+VarSpec       ::= IdentifierListStar2 VarSpecAux2 {: Semantic.getInstance().printVars(); :};
+VarSpecAux2   ::= Type:t OptAssignExpList:optAss  {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().initializeVars(type, optAss.toString()); :}
+                  | ASSIGN ExpressionList:epl;
 
 /* --------------- LabeledStmt -------------------- */
 LabeledStmt ::= IDENTIFIER COLON Statement;
@@ -341,10 +354,20 @@ LabeledStmt ::= IDENTIFIER COLON Statement;
 /* --------------- SimpleStmt --------------------- */
 SimpleStmt ::= Expression AuxExpression | Assignment | INTERROGATION ShortVarDecl |;  // HOT FIX INTERROGATION
 AuxExpression ::= CHANNEL_OP Expression | INC_OP | SUB_OP | PLUS PLUS | MINUS MINUS | ;
-Assignment ::= ExpressionList AssignOp ExpressionList;
-AssignOp ::= MUL_ASSIGN | ADD_ASSIGN | XOR_ASSIGN | DIV_ASSIGN |
-             LEFT_ASSIGN | RIGHT_ASSIGN | AND_NOT_ASSIGN | MINUS_ASSIGN | ADDRESS_ASSIGN |
-             ASSIGN; // Missing other types of assignment
+
+
+Assignment ::= ExpressionList:el1 AssignOp:ass {: Semantic.getInstance().transferExpBuffer();  :} ExpressionList:el2 {: Semantic.getInstance().updateVars(ass.toString());  :};
+
+AssignOp ::= MUL_ASSIGN:ma         {: RESULT = ma;     :}
+			 | ADD_ASSIGN:aa       {: RESULT = aa;     :}
+			 | XOR_ASSIGN:xa       {: RESULT = xa;     :}
+			 | DIV_ASSIGN:da       {: RESULT = da;     :}
+			 | LEFT_ASSIGN:la      {: RESULT = la;     :}
+			 | RIGHT_ASSIGN:ra     {: RESULT = ra;     :}
+			 | AND_NOT_ASSIGN:ana  {: RESULT = ana;    :}
+			 | MINUS_ASSIGN:minusa {: RESULT = minusa; :}
+			 | ADDRESS_ASSIGN:adda {: RESULT = adda;   :}
+			 | ASSIGN:a            {: RESULT = a;      :}; // Missing other types of assignment
 
 ShortVarDecl ::=  IdentifierList CHANNEL_ASSIGN ExpressionList;
 
@@ -415,8 +438,10 @@ ReturnStmt ::= RETURN ExpressionListStar;
 GoStmt ::= GO Expression;
 
 
-OptAssign ::= ASSIGN | ;
-OptAssignExpList ::= ASSIGN ExpressionList | ;
+OptAssign ::= ASSIGN
+			 |  {: RESULT = ""; :};
+OptAssignExpList ::= ASSIGN:ass ExpressionList:epl  {: RESULT = "Assigment"; :}
+			        |                               {: RESULT = "";          :};
 
 /* --------------- Struct ---------------------- */
 StructType     ::= STRUCT CURLY_L FieldDeclStar1 CURLY_R;

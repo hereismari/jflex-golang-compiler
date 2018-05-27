@@ -1,7 +1,9 @@
 package semantic.models;
 
+import semantic.exceptions.SemanticException;
+
 public enum Type {
-	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64");
+	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64"), UNKNOWN("unknown");
 
 	private final String name;
 
@@ -13,15 +15,13 @@ public enum Type {
 		return this.name;
 	}
 
-	public static Type convertToType(String typeName) {
+	public static Type convertToType(String typeName) throws SemanticException {
 		for (Type type : Type.values()) {
 			if (type.name.equals(typeName)) {
 				return type;
 			}
 		}
 		
-		System.err.println("Semantic error, Invalid type: " + typeName);
-		
-		return null;
+		throw new SemanticException("Invalid type: " + typeName);
 	}
 }
