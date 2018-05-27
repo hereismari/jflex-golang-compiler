@@ -8,13 +8,13 @@ A Golang compiler implementation.
 
 * escopo comum
    * Realizar checagem de tipos e contextos:
-     - [ ] Tipos existentes;
+     - [x] Tipos existentes (MARIANNE: considerando String, float, int);
      - [ ] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
      - [X] Declaração;
      - [ ] Uso de Variáveis;
-     - [ ] Comandos de atribuição;
+     - [X] Comandos de atribuição;
      - [ ] Expressões aritméticas;
-     - [ ] literais (inteiros, string, booleanos).
+     - [X] literais (inteiros, string, booleanos).
 
 * escopo A
      - [ ] Funções
