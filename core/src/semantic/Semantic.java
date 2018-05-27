@@ -52,6 +52,11 @@ public class Semantic {
 		expBuffer.clear();
 	}
 	
+	public Expression calculateExpr(Expression e1, String op, Expression e2) {
+		System.err.println(e1.toString() + op.toString() + e2.toString());
+		return e1;
+	}
+	
 	/* In Golang the type and values will be in the end of the declaration.
 	 * 
 	 * Given a type + values this function will consider all variables in varNamesBuffer

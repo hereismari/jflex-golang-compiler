@@ -215,11 +215,39 @@ BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.I
                  | RUNE_LITERAL
                  | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit;  :};
 
-UnaryOp  ::= PLUS | MINUS |  NOT | XOR | MUL | ADDRESS | CHANNEL_OP;
-MulOp    ::= MUL | DIV | MOD | LEFT_OP | RIGHT_OP | ADDRESS | AND_NOT_OP;
-AddOp    ::= PLUS | MINUS | OR | XOR;
-RelOp    ::= EQ_OP | NE_OP | LT | LTE | GT | GTE;
-BinOp    ::= OR_OP | AND | RelOp | AddOp | MulOp;
+UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :} 
+			| MINUS:minus      {: RESULT = minus; :}
+			| NOT:not          {: RESULT = not;   :}
+			| XOR:xor          {: RESULT = xor;   :}
+			| MUL:mul          {: RESULT = mul;   :}
+			| ADDRESS:addr     {: RESULT = addr;  :}
+			| CHANNEL_OP:cop   {: RESULT = cop;   :};
+			
+MulOp    ::= MUL:mul           {: RESULT = mul; :}
+             | DIV:div         {: RESULT = div; :}
+             | MOD:mod         {: RESULT = mod; :}
+             | LEFT_OP:lop     {: RESULT = lop; :}
+             | RIGHT_OP:rop    {: RESULT = rop; :}
+             | ADDRESS:addr    {: RESULT = addr; :}
+             | AND_NOT_OP:anop {: RESULT = anop; :};
+
+AddOp    ::= PLUS:plus         {: RESULT = plus;  :}
+             | MINUS:minus     {: RESULT = minus; :}
+             | OR:or           {: RESULT = or;    :}
+             | XOR:xor         {: RESULT = xor;   :};
+
+RelOp    ::= EQ_OP:eqop        {: RESULT = eqop;  :}
+            | NE_OP:neop       {: RESULT = neop;  :}
+            | LT:lt            {: RESULT = lt;    :}
+            | LTE:let          {: RESULT = let;   :}
+            | GT:gt            {: RESULT = gt;    :}
+            | GTE:gte          {: RESULT = gte;   :};
+
+BinOp    ::= OR_OP:orop        {: RESULT = orop;  :}
+             | AND:and         {: RESULT = and;   :}
+             | RelOp:relop     {: RESULT = relop; :}
+             | AddOp:addop     {: RESULT = addop; :}
+             | MulOp:mulop     {: RESULT = mulop; :};
 
 /* --------------- Composite literal------------ */
 CompositeLit     ::= LiteralType LiteralValue;
@@ -271,8 +299,8 @@ PrimaryExpr    ::= Operand:op                            {: RESULT = op; :}
                    | Conversion                          {: RESULT = ""; :}
                    | PrimaryExpr PrimaryExprOtherOptions {: RESULT = "" ;:};  // Obs: Missing MethodExpr
 
-Expression     ::= UnaryExpr:uexp  {: RESULT = uexp; :}
-				   | Expression BinOp Expression;
+Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
+				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression)e1, bop.toString(), (Expression)e2);  :};
 
 // Index, Slice and Arguments, HASH TypeAssertion
 PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
