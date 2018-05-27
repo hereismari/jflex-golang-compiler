@@ -45,7 +45,21 @@ public class Semantic {
 	public void addExpression(Expression v) {
 		expBuffer.add(v);
 	}
+	
 
+	/* Exception helpers */
+	private void clearBuffers() {
+		this.varNamesBuffer.clear();
+		this.expBuffer.clear();
+		this.expBufferBeforeAssign.clear();
+	}
+	
+	private void throwSemanticException(String message) throws SemanticException {
+		clearBuffers();
+		throw new SemanticException(message);
+	}
+
+	/* Expression related methods */
 	public void transferExpBuffer() {
 		expBufferBeforeAssign.clear();
 		expBufferBeforeAssign.addAll(expBuffer);
@@ -56,6 +70,8 @@ public class Semantic {
 		System.err.println(e1.toString() + op.toString() + e2.toString());
 		return e1;
 	}
+	
+	/* Declaration related methods */
 	
 	/* In Golang the type and values will be in the end of the declaration.
 	 * 
@@ -69,7 +85,7 @@ public class Semantic {
 				this.variables.put(varName, var);
 			}
 		} else if (expBuffer.size() != varNamesBuffer.size()) {
-			throw new SemanticException("assignment count mismatch: " + varNamesBuffer.size() + " != " + expBuffer.size());
+			throwSemanticException("assignment count mismatch: " + varNamesBuffer.size() + " != " + expBuffer.size());
 		} else {
 			for (int i = 0, j = varNamesBuffer.size()-1; i < varNamesBuffer.size(); i++, j--) {
 				Expression exp = this.expBuffer.get(j);
@@ -83,8 +99,7 @@ public class Semantic {
 			}
 		}
 		
-		this.varNamesBuffer.clear();
-		this.expBuffer.clear();
+		clearBuffers();
 	}
 	
 	public void updateVars(String assigment) throws SemanticException {
@@ -94,14 +109,14 @@ public class Semantic {
 		
 		if(assigment == "=") {
 			if (expBuffer.size() != expBufferBeforeAssign.size()) {
-				throw new SemanticException("assignment count mismatch: " + expBufferBeforeAssign.size() + " != " + expBuffer.size());
+				throwSemanticException("assignment count mismatch: " + expBufferBeforeAssign.size() + " != " + expBuffer.size());
 			} else {
 				for (int i = 0; i < expBuffer.size(); i++) {
 					Expression expbefr = expBufferBeforeAssign.get(i);
 					Expression exp = expBuffer.get(i);
 					
 					if(!variables.containsKey(expbefr.getName())) {
-						throw new SemanticException("variable " + expbefr.getName() + " used before assigment.");
+						throwSemanticException("variable " + expbefr.getName() + " used before assigment.");
 					} else {
 						
 						Variable var = variables.get(expbefr.getName());
@@ -116,8 +131,7 @@ public class Semantic {
 			}
 		}
 		
-		this.expBufferBeforeAssign.clear();
-		this.expBuffer.clear();	
+		clearBuffers();
 	}
 	
 	public Type typeCoersion(Type mainType, Type otherType) throws SemanticException {
@@ -127,7 +141,7 @@ public class Semantic {
 			return otherType;
 		}
 		else if (mainType != otherType) {
-			throw new SemanticException("Invalid types " + mainType.toString() + " and " + otherType.toString());
+			throwSemanticException("Invalid types " + mainType.toString() + " and " + otherType.toString());
 		}
 		return otherType;
 	}
@@ -149,7 +163,7 @@ public class Semantic {
 	        if (expressionType == null) {
 	            return null;
 	        } else if (!variableType.equals(expressionType)) {
-	            throw new SemanticException("Variable type is " + variableType.name() + " but Expression Type is " + expressionType.name());
+	            throwSemanticException("Variable type is " + variableType.name() + " but Expression Type is " + expressionType.name());
 	        }
 	        return variableType;
 	}
