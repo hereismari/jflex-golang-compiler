@@ -149,6 +149,9 @@ Invalid = {AuxInvalid}{AuxInvalid}*
 "return"                      { return symbol(RETURN, "return"); }
 "var"                         { return symbol(VAR, "var"); }
 
+"true"                        { return symbol(TRUE, "true"); }
+"false"                       { return symbol(FALSE, "false"); }
+
 // Operators
 
 "+"                           { return symbol(PLUS, "+"); }
