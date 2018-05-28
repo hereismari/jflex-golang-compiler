@@ -3,7 +3,7 @@ package semantic.models;
 import semantic.exceptions.SemanticException;
 
 public enum Type {
-	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64"), UNKNOWN("unknown");
+	INT("int"), STRING("string"), BOOL("bool"), FLOAT32("float32"), FLOAT64("float64"), UNKNOWN("unknown");
 
 	private final String name;
 
@@ -21,7 +21,7 @@ public enum Type {
 				return type;
 			}
 		}
-		
+
 		throw new SemanticException("Invalid type: " + typeName);
 	}
 }

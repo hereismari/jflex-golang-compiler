@@ -67,6 +67,41 @@ public class Semantic {
 		expBuffer.clear();
 	}
 
+	public Expression calculateUnaryExpr(String op, Expression expr) throws SemanticException {
+		Type exprType = expr.getType();
+
+		if (exprType == Type.UNKNOWN) {
+			exprType = this.variables.get(expr.getName()).getType();
+		}
+
+		this.validateUnaryOperation(op, exprType);
+		String exprValue = op + expr.getValue();
+		Expression resultingExpr = new Expression(exprType, exprValue);
+		return resultingExpr;
+	}
+
+	private void validateUnaryOperation(String op, Type exprType) throws SemanticException {
+		switch (exprType) {
+		case BOOL:
+			if (op == "+" || op == "-") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		case INT:
+			if (op == "!") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		case FLOAT32:
+			if (op == "!") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		default:
+			throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+		}
+	}
+
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
 		Type resultingType = this.validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
@@ -120,6 +155,11 @@ public class Semantic {
 
 	private void validateSpecificOp(Type exprType, String op) throws SemanticException {
 		switch (exprType) {
+		case BOOL:
+			if (op != "&&" && op != "||") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
 		case INT:
 			if (op == "&&" || op == "||") {
 				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
