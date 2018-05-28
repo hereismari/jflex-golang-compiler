@@ -3,7 +3,7 @@ package semantic.models;
 import semantic.exceptions.SemanticException;
 
 public enum Type {
-	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64"), UNKNOWN("unknown");
+	INT("int"), STRING("string"), FLOAT32("float32"), FLOAT64("float64"), UNKNOWN("unknown"), VOID("void");
 
 	private final String name;
 
@@ -17,7 +17,7 @@ public enum Type {
 
 	public static Type convertToType(String typeName) throws SemanticException {
 		for (Type type : Type.values()) {
-			if (type.name.equals(typeName)) {
+			if (type.name.equals(typeName) && Type.UNKNOWN.name != typeName && Type.VOID.name != typeName) {
 				return type;
 			}
 		}

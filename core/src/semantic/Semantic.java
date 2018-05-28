@@ -8,12 +8,16 @@ import java.util.Map;
 import semantic.models.Type;
 import semantic.exceptions.SemanticException;
 import semantic.models.Expression;
+import semantic.models.Function;
 import semantic.models.Variable;
 
 public class Semantic {
 
 	private static Semantic semantic = new Semantic();
 	private Map<String, Variable> variables = new HashMap<>();
+	
+	private Map<String, Function> functions = new HashMap<>();
+	private String currentFunction;
 	
 	/* Buffer to store variables names while we wait for the type. */
 	private List<String> varNamesBuffer = new ArrayList<>();
@@ -28,6 +32,7 @@ public class Semantic {
 	 * */
 	private List<Expression> expBufferBeforeAssign = new ArrayList<>();
 
+	/* Semantic Basics */
 	private Semantic() {}
 
 	public static Semantic getInstance() {
@@ -47,7 +52,17 @@ public class Semantic {
 	}
 	
 
-	/* Exception helpers */
+	/* Helpers */
+	public void clear() {
+		this.varNamesBuffer.clear();
+		
+		this.expBuffer.clear();
+		this.expBufferBeforeAssign.clear();
+		
+		this.variables.clear();
+		this.functions.clear();
+	}
+
 	private void clearBuffers() {
 		this.varNamesBuffer.clear();
 		this.expBuffer.clear();
@@ -55,7 +70,7 @@ public class Semantic {
 	}
 	
 	private void throwSemanticException(String message) throws SemanticException {
-		clearBuffers();
+		clear();
 		throw new SemanticException(message);
 	}
 
@@ -69,6 +84,31 @@ public class Semantic {
 	public Expression calculateExpr(Expression e1, String op, Expression e2) {
 		System.err.println(e1.toString() + op.toString() + e2.toString());
 		return e1;
+	}
+	
+	/* Function related methods */
+	public void createNewFunction(String functionName) throws SemanticException {
+		if(functions.containsKey(functionName)) {
+			throwSemanticException(functionName + " already exists.");
+		}
+		
+		functions.put(functionName, new Function(functionName));
+		currentFunction = functionName;
+	}
+	
+	public void FunctionAddReturnType(Type type) {
+		Function f = functions.get(currentFunction);
+		f.setReturnType(type);
+	}
+	
+	public void FunctionAddParameter(String varName) {
+		Function f = functions.get(currentFunction);
+		f.addVariable(new Variable(Type.UNKNOWN, varName));
+	}
+	
+	public void FunctionInitializeParameters(Type type) {
+		Function f = functions.get(currentFunction);
+		f.initializeParameters(type);
 	}
 	
 	/* Declaration related methods */
