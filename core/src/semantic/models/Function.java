@@ -1,6 +1,7 @@
 package semantic.models;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import semantic.exceptions.SemanticException;
 
@@ -64,9 +65,17 @@ public class Function extends ScopedEntity {
 		this.returnedType = type;
 	}
 
-	public void initializeParameters(Type type) {
+	public List<String> initializeParameters(Type type) {
+		System.out.println(parameters);
+		
+		List<String> res = new ArrayList<>();
 		for(Variable v: parameters) {
-			if(v.getType() == Type.UNKNOWN) v.setType(type);
+			if(v.getType() == Type.UNKNOWN) {
+				v.setType(type);
+				res.add(v.getName());
+			}
 		}
+		
+		return res;
 	}
 }

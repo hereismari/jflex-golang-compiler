@@ -4,12 +4,9 @@ func plus(a int, b int) int {
     return a + b;
 };
 
-func plusPlus(a, b, c int) int {
+func plusPlus(a int, b int, c int) int {
     return a + b + c;
 };
-
-// || teste
-// 1 || 2 
 
 func main() {
     var res int;

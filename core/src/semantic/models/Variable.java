@@ -26,4 +26,8 @@ public class Variable extends TypedEntity {
 	public void setValue(String value) {
 		this.value = value;
 	}
+	
+	public String toString() {
+		return "variable: " + getName() + ", type: " + getType() + ", value: " + value; 
+	}
 }

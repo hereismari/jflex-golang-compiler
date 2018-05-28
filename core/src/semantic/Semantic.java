@@ -18,7 +18,6 @@ public class Semantic {
 	private Map<String, Function> functions = new HashMap<>();
 	private String currentFunction;
 	
-
 	/* Buffer to store variables names while we wait for the type. */
 	private List<String> varNamesBuffer = new ArrayList<>();
 
@@ -50,6 +49,16 @@ public class Semantic {
 
 	public void addExpression(Expression v) {
 		expBuffer.add(v);
+	}
+	
+	public Variable getVariable(String varName) throws SemanticException {
+		try {
+			return this.variables.get(varName);
+		} catch(NullPointerException e) {
+			throwSemanticException("Variable " + varName + " was not declared.");
+		}
+		
+		return null;
 	}
 
 	/* Helpers */
@@ -100,9 +109,12 @@ public class Semantic {
 	 * type is the type of the rightmost constant.
 	 */
 	private Type validateBinOperation(Expression e1, String op, Expression e2) throws SemanticException {
+		
+		System.out.println(variables);
+		
 		if (e1.getType() == Type.UNKNOWN && e2.getType() == Type.UNKNOWN) {
-			Type e1Type = this.variables.get(e1.getName()).getType();
-			Type e2Type = this.variables.get(e2.getName()).getType();
+			Type e1Type = getVariable(e1.getName()).getType();
+			Type e2Type = getVariable(e2.getName()).getType();
 
 			if (e1Type != e2Type) {
 				throwSemanticException("Invalid types " + e1Type.toString() + " and " + e2Type.toString() + " for the "
@@ -113,13 +125,13 @@ public class Semantic {
 			validateSpecificOp(e2Type, op);
 			return e1Type;
 		} else if (e1.getType() == Type.UNKNOWN) {
-			Type e1Type = this.variables.get(e1.getName()).getType();
+			Type e1Type = getVariable(e1.getName()).getType();
 
 			validateSpecificOp(e1Type, op);
 			validateSpecificOp(e2.getType(), op);
 			return binOpTypeCoersion(e1Type, e2.getType(), op);
 		} else if (e2.getType() == Type.UNKNOWN) {
-			Type e2Type = this.variables.get(e2.getName()).getType();
+			Type e2Type = getVariable(e2.getName()).getType();
 
 			validateSpecificOp(e2Type, op);
 			validateSpecificOp(e1.getType(), op);
@@ -171,14 +183,21 @@ public class Semantic {
 		f.setReturnType(type);
 	}
 	
-	public void FunctionAddParameter(String varName) {
+	public void FunctionAddParameter(String varName) throws SemanticException {
+		System.out.println("adding " + varName);
 		Function f = functions.get(currentFunction);
-		f.addVariable(new Variable(Type.UNKNOWN, varName));
+		Variable var = new Variable(Type.UNKNOWN, varName);
+		f.addParameter(var);
+		variables.put(varName, var);
 	}
 	
-	public void FunctionInitializeParameters(Type type) {
+	public void FunctionInitializeParameters(Type type) throws SemanticException {
+		System.out.println("initializing " + type);
 		Function f = functions.get(currentFunction);
-		f.initializeParameters(type);
+		List<String> vars = f.initializeParameters(type);
+		for (String var: vars) {
+			getVariable(var).setType(type);
+		}
 	}
 
 	/* Declaration related methods */

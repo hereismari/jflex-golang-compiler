@@ -535,14 +535,15 @@ ParameterList       ::= ParameterDecl:pdecl  {: RESULT = pdecl; :};
 TypeNoIdentifier    ::= TypeLit | PAR_L Type PAR_R;
 ParameterDecl       ::= IdentifierListParam |
 					    ELLIPSIS Type ParameterDeclStar |
-					    TypeNoIdentifier ParameterDeclStar;
+					    TypeNoIdentifier:t ParameterDeclStar   {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().FunctionInitializeParameters(type); :};
 
 ParameterDeclStar   ::= COMMA ParameterDecl | COMMA | ;
-IdentifierListParam ::= Identifier IdentifierStar2;  // include all posibilities
+
+IdentifierListParam ::= Identifier:id IdentifierStar2:t        {: Semantic.getInstance().FunctionAddParameter(id.toString()); Semantic.getInstance().FunctionInitializeParameters((Type)t); :};  // include all posibilities
 // IdentifierStar3     ::= IdentifierStar2 |;
-IdentifierStar2     ::= COMMA Identifier:id IdentifierStar2  {: Semantic.getInstance().FunctionAddParameter(id.toString()); :}
+IdentifierStar2     ::= COMMA Identifier:id IdentifierStar2:t  {: Semantic.getInstance().FunctionAddParameter(id.toString()); Semantic.getInstance().FunctionInitializeParameters((Type)t); RESULT = t; :}
                         | ELLIPSIS Type ParameterDeclStar
-                        | Type:t ParameterDeclStar           {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().FunctionInitializeParameters(type); :} ;
+                        | Type:t ParameterDeclStar             {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().FunctionInitializeParameters(type); RESULT = type; :};
 //IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
 
 FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
