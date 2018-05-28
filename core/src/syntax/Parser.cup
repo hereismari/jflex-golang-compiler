@@ -300,7 +300,7 @@ PrimaryExpr    ::= Operand:op                            {: RESULT = op; :}
                    | PrimaryExpr PrimaryExprOtherOptions {: RESULT = "" ;:};  // Obs: Missing MethodExpr
 
 Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
-				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression)e1, bop.toString(), (Expression)e2);  :};
+				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
 
 // Index, Slice and Arguments, HASH TypeAssertion
 PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
