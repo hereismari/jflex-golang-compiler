@@ -69,7 +69,7 @@ public class Semantic {
 
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
 		Type resultingType = this.validateBinOperation(e1, op, e2);
-		String exprValue = "(" + e1.getValue() + op + e2.getValue() + ")";
+		String exprValue = e1.getValue() + op + e2.getValue();
 		Expression resultingExpr = new Expression(resultingType, exprValue);
 
 		return resultingExpr;
@@ -126,12 +126,6 @@ public class Semantic {
 			}
 			break;
 		case FLOAT32:
-			if (op == "&&" || op == "||" || op == "%" || op == "&" || op == "|" || op == "^" || op == "&^" || op == "<<"
-					|| op == ">>") {
-				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
-			}
-			break;
-		case FLOAT64:
 			if (op == "&&" || op == "||" || op == "%" || op == "&" || op == "|" || op == "^" || op == "&^" || op == "<<"
 					|| op == ">>") {
 				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
