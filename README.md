@@ -18,7 +18,7 @@ A Golang compiler implementation.
 
 * escopo A
      - [ ] Funções
-     - [ ] Expressões relacionais
+     - [X] Expressões relacionais
      - [ ] Comandos condicionais: if-else
 
 ## Syntax Analysis (portuguese only)
