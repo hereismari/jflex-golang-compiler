@@ -41,4 +41,13 @@ func main() {
 	
 	u = true && false;
 	u = true || false;
+	
+	u = 1 == 2;
+	u = 1 < 2;
+	u = 1 != 2;
+	u = 1 > 2.0;
+	u = "teste" > "lala";
+	u = true == true;
+	u = true != false;
+	u = "teste" == "teste";
 };
