@@ -17,7 +17,7 @@ public class ScopedEntity extends NamedEntity {
 		variables = new HashMap<String, Variable>();
 	}
 
-	public Map<String, Variable> getVariable() {
+	public Map<String, Variable> getVariables() {
 		return variables;
 	}
 	

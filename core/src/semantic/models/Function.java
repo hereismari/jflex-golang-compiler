@@ -9,7 +9,9 @@ public class Function extends ScopedEntity {
 	
 	private Type returnType = Type.VOID;            // Default Return Type
 	private ArrayList<Variable> parameters;
-	private Type returnedType = Type.VOID;          // Default Return Type
+	
+	private Expression returnedExpression = new Expression();
+	private boolean seenReturn = false;
 
 	public Function(String name, ArrayList<Variable> parameters) throws SemanticException {
 		super(name);
@@ -30,20 +32,26 @@ public class Function extends ScopedEntity {
 	}
 	
 	public void addParameter(Variable v) throws SemanticException {
-		if(parameters.contains(v)) {
+		if(parameters.contains(v) || getVariables().containsKey(v.getName())) {
 			throw new SemanticException("Variable already declared " + v.toString());
 		}
+		
 		parameters.add(v);
+		addVariable(v);
 	}
 	
 	public Type getReturnType() {
 		return returnType;
 	}
 	
-	public Type[] getParameterTypes() {
-		Type[] pTypes = new Type[parameters.size()];
-		for (int i = 0 ; i < pTypes.length ; i++)
-			pTypes[i] = parameters.get(i).getType();
+	public List<Variable> getParameters() {
+		return parameters;
+	}
+	
+	public List<Type> getParameterTypes() {
+		List<Type> pTypes = new ArrayList<>();
+		for (int i = 0 ; i < parameters.size() ; i++)
+			pTypes.add(parameters.get(i).getType());
 		return pTypes;
 	}
 
@@ -56,26 +64,32 @@ public class Function extends ScopedEntity {
 		return "{ Function: " + getName() + " " + getReturnType() + " " + parameters + " }";
 	}
 
-	public void validateReturnedType() throws SemanticException { // Checks if the function returned what it was supposed to..
-		if (!returnedType.equals(returnType))
-			throw new SemanticException("Function " + getName() + " was supposed to return " + returnType);
+	/* Checks if the function returned what it was supposed to */
+	public void validateReturnedType() throws SemanticException {
+		System.out.println(returnedExpression);
+		if (!returnedExpression.getType().equals(returnType))
+			throw new SemanticException("Function " + getName() + " was supposed to return " + returnType + " but is returning " + returnedExpression.getType() + " instead.");
 	}
 
-	public void setReturnedType(Type type) {
-		this.returnedType = type;
+	public void setReturnedExpression(Expression e) {
+		if(!seenReturn) {
+			returnedExpression = e;
+			seenReturn = true;
+		}
+	}
+	
+	public Expression getReturnedExpression() {
+		return returnedExpression;
 	}
 
-	public List<String> initializeParameters(Type type) {
+	public void initializeParameters(Type type) {
 		System.out.println(parameters);
 		
-		List<String> res = new ArrayList<>();
 		for(Variable v: parameters) {
 			if(v.getType() == Type.UNKNOWN) {
 				v.setType(type);
-				res.add(v.getName());
 			}
 		}
 		
-		return res;
 	}
 }

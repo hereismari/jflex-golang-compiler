@@ -2,13 +2,17 @@ package semantic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 import semantic.models.Type;
 import semantic.exceptions.SemanticException;
 import semantic.models.Expression;
 import semantic.models.Function;
+import semantic.models.ScopedEntity;
 import semantic.models.Variable;
 
 public class Semantic {
@@ -16,7 +20,6 @@ public class Semantic {
 	private static Semantic semantic = new Semantic();
 	private Map<String, Variable> variables = new HashMap<>();
 	private Map<String, Function> functions = new HashMap<>();
-	private String currentFunction;
 	
 	/* Buffer to store variables names while we wait for the type. */
 	private List<String> varNamesBuffer = new ArrayList<>();
@@ -31,7 +34,14 @@ public class Semantic {
 	 * Buffer to store expression before assign. Only used for assign operations!
 	 */
 	private List<Expression> expBufferBeforeAssign = new ArrayList<>();
-
+	
+	/*
+	 * Stack containing Scoped entities definitions. After a Scoped entity is finished
+	 * (CURLY_R is found) the scope is removed from stack, but if it's a function
+	 * will still be available in functions.
+	 */
+	private Stack<ScopedEntity> scopeStack = new Stack<>();
+	
 	/* Semantic Basics */
 	private Semantic() {}
 
@@ -42,9 +52,47 @@ public class Semantic {
 	public Map<String, Variable> getVariables() {
 		return variables;
 	}
-
+	
+	public boolean checkVariableNameAllScopes(String name) {
+		Set<String> allVariables = new HashSet<String>();
+		if (scopeStack.isEmpty())
+			allVariables.addAll(variables.keySet());
+		else {
+			allVariables.addAll(scopeStack.peek().getVariables().keySet());
+			
+			for (int i = 0 ; i < scopeStack.size() - 1 ; i++) {
+				allVariables.addAll(scopeStack.get(i).getVariables().keySet());
+			}
+		}
+		return allVariables.contains(name);
+	}
+	
 	public void addVarName(String varName) {
+		Variable var = new Variable(varName);
 		varNamesBuffer.add(varName);
+	}
+	
+	public void addVariable(Variable var) throws SemanticException {
+		if (checkVariableInCurrentScope(var.getName()))
+			throwSemanticException("Variable " + var.getName() + " was already declared in this scope.");
+		
+		if (!scopeStack.isEmpty()) {
+			scopeStack.peek().addVariable(var);
+		} else {
+			variables.put(var.getName(), var);
+		}
+		
+		System.out.println("adding " + var.getName());
+		System.out.println(variables);
+		System.out.println(scopeStack.isEmpty());
+	}
+	
+	public boolean checkVariableInCurrentScope(String name) {
+		if (scopeStack.isEmpty())
+			return variables.containsKey(name);
+		else {
+			return scopeStack.peek().getVariables().containsKey(name);
+		}	
 	}
 
 	public void addExpression(Expression v) {
@@ -53,29 +101,53 @@ public class Semantic {
 	
 	public Variable getVariable(String varName) throws SemanticException {
 		try {
-			return this.variables.get(varName);
+			if (scopeStack.isEmpty()) {
+				return variables.get(varName);
+			} else {
+				
+				System.out.println("variables: " + variables);
+				
+				// Check if exists in program
+				if(variables.containsKey(varName)) {
+					return variables.get(varName);
+				}
+				
+				// Check in current scope
+				if(scopeStack.peek().getVariables().containsKey(varName)) {
+					return scopeStack.peek().getVariables().get(varName);
+				}
+				
+				// Check in previous scopes
+				for (int i = 0 ; i < scopeStack.size() - 1 ; i++) {
+					if(scopeStack.peek().getVariables().containsKey(varName)) {
+						return scopeStack.peek().getVariables().get(varName);
+					}
+				}
+			}
 		} catch(NullPointerException e) {
 			throwSemanticException("Variable " + varName + " was not declared.");
 		}
 		
+		throwSemanticException("Variable " + varName + " was not declared.");
 		return null;
 	}
 
 	/* Helpers */
 	public void clear() {
-		this.varNamesBuffer.clear();
+		varNamesBuffer.clear();
 		
-		this.expBuffer.clear();
-		this.expBufferBeforeAssign.clear();
+		expBuffer.clear();
+		expBufferBeforeAssign.clear();
 		
-		this.variables.clear();
-		this.functions.clear();
+		variables.clear();
+		functions.clear();
+		scopeStack.clear();
 	}
 
 	private void clearBuffers() {
-		this.varNamesBuffer.clear();
-		this.expBuffer.clear();
-		this.expBufferBeforeAssign.clear();
+		varNamesBuffer.clear();
+		expBuffer.clear();
+		expBufferBeforeAssign.clear();
 	}
 
 	private void throwSemanticException(String message) throws SemanticException {
@@ -169,37 +241,112 @@ public class Semantic {
 	}
 
 	/* Function related methods */
+	
 	public void createNewFunction(String functionName) throws SemanticException {
+		// TODO: Check overload
 		if(functions.containsKey(functionName)) {
 			throwSemanticException(functionName + " already exists.");
 		}
 		
-		functions.put(functionName, new Function(functionName));
-		currentFunction = functionName;
+		Function f = new Function(functionName);
+		functions.put(functionName, f);
+		
+		System.out.println("Creating function: " + functions);
+		createNewScope(f);
 	}
 	
 	public void FunctionAddReturnType(Type type) {
-		Function f = functions.get(currentFunction);
+		Function f = (Function) scopeStack.peek();
 		f.setReturnType(type);
+	}
+	
+	public void FunctionAddReturnedExpression(Expression e) throws SemanticException {
+		Function f = (Function) scopeStack.peek();
+		
+		if(e.getType() == Type.UNKNOWN) {
+			e.setType(getVariable(e.getName()).getType());
+		}
+		
+		f.setReturnedExpression(e);
+		clearBuffers();
 	}
 	
 	public void FunctionAddParameter(String varName) throws SemanticException {
 		System.out.println("adding " + varName);
-		Function f = functions.get(currentFunction);
+		Function f = (Function) scopeStack.peek();
 		Variable var = new Variable(Type.UNKNOWN, varName);
 		f.addParameter(var);
-		variables.put(varName, var);
 	}
 	
 	public void FunctionInitializeParameters(Type type) throws SemanticException {
 		System.out.println("initializing " + type);
-		Function f = functions.get(currentFunction);
-		List<String> vars = f.initializeParameters(type);
-		for (String var: vars) {
-			getVariable(var).setType(type);
+		Function f = (Function) scopeStack.peek();
+		f.initializeParameters(type);
+	}
+	
+	public void FunctionCheckParameters(Expression expr) throws SemanticException {
+		System.out.println("checking " + expr);
+		System.out.println(expBuffer);
+		try {
+			Function f = functions.get(expr.getName());
+			List<Type> parameters = f.getParameterTypes();
+			
+			if(parameters.size() != expBuffer.size()) {
+				throwSemanticException("Function " + f.getName() + " receives " + parameters.size() + " parameters. " + expBuffer.size() + " parameters found instead.");
+			}
+			
+			for(int i = 0; i < expBuffer.size(); i++) {
+				// TODO: if type unknown needs to get the variable/function
+				if(expBuffer.get(i).getType() != parameters.get(i)) {
+					throwSemanticException("Parameters have different types.");
+				}
+			}
+			
+		} catch (NullPointerException e) {
+			throwSemanticException("Function " + expr.getName() + " does not exist.");
 		}
+		
+		expBuffer.clear();
+	}
+	
+	public boolean checkFunctionName(String functionName) {
+		Function f = functions.get(functionName);
+		return f != null;
+	}
+	
+	public boolean checkFunctionCall(String functionName) {
+		Function f = functions.get(functionName);
+		return f != null && f.getParameterTypes().size() == 0;
+	}
+	
+	public boolean checkFunctionCall(String functionName, Variable[] variables) {
+		Function f = functions.get(functionName);
+		if (f != null && f.getParameterTypes().size() == variables.length) {
+			for (int i = 0 ; i < variables.length ; i++) {
+				if (!variables[i].getType().equals(f.getParameterTypes().get(i)))
+					return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
+	/* Scope related methods */
+	private void createNewScope(ScopedEntity scope) {
+		scopeStack.push(scope);
+	}
+	
+	public void exitCurrentScope() throws SemanticException {
+		ScopedEntity scoped = scopeStack.pop();
+		
+		if (scoped instanceof Function)
+			((Function) scoped).validateReturnedType();
+	}
+	
+	public ScopedEntity getCurrentScope() {
+		return scopeStack.peek();
+	}
+	
 	/* Declaration related methods */
 
 	/*
@@ -211,8 +358,7 @@ public class Semantic {
 	public void initializeVars(Type type, String assigment) throws SemanticException {
 		if (assigment.isEmpty()) {
 			for (String varName : this.varNamesBuffer) {
-				Variable var = new Variable(type, varName);
-				this.variables.put(varName, var);
+				addVariable(new Variable(type, varName));
 			}
 		} else if (expBuffer.size() != varNamesBuffer.size()) {
 			throwSemanticException("assignment count mismatch: " + varNamesBuffer.size() + " != " + expBuffer.size());
@@ -222,10 +368,9 @@ public class Semantic {
 				String varName = this.varNamesBuffer.get(i);
 
 				// Checking if value type is valid
-				Type t = typeCoersion(type, exp.getType());
+				Type t = typeCoersion(type, exp);
 
-				Variable var = new Variable(type, varName, exp.getValue());
-				this.variables.put(varName, var);
+				addVariable(new Variable(type, varName, exp.getValue()));
 			}
 		}
 
@@ -234,6 +379,7 @@ public class Semantic {
 
 	public void updateVars(String assigment) throws SemanticException {
 
+		System.out.println("Assignment");
 		System.out.println(expBuffer.toString());
 		System.out.println(expBufferBeforeAssign.toString());
 
@@ -246,18 +392,14 @@ public class Semantic {
 					Expression expbefr = expBufferBeforeAssign.get(i);
 					Expression exp = expBuffer.get(i);
 
-					if (!variables.containsKey(expbefr.getName())) {
-						throwSemanticException("variable " + expbefr.getName() + " used before assigment.");
-					} else {
+					// Expbefr is for sure a variable since its an assignment
+					Variable var = getVariable(expbefr.getName());
+					System.out.println(var);
+					Type t = typeCoersion(var.getType(), exp);
 
-						Variable var = variables.get(expbefr.getName());
-						Type t = typeCoersion(var.getType(), exp.getType());
-
-						// Update var
-						var.setType(t);
-						var.setValue(exp.getValue());
-						variables.put(var.getName(), var);
-					}
+					// Update var
+					var.setType(t);
+					var.setValue(exp.getValue());
 				}
 			}
 		}
@@ -265,7 +407,24 @@ public class Semantic {
 		clearBuffers();
 	}
 
-	public Type typeCoersion(Type mainType, Type otherType) throws SemanticException {
+	public Type typeCoersion(Type mainType, Expression e) throws SemanticException {
+		
+		System.out.println(e);
+		
+		if(e.getType() == Type.UNKNOWN) {
+			try {
+				System.out.println(functions);
+				Function f = functions.get(e.getName());
+				e.setType(f.getReturnType());
+				e.setValue(f.getReturnedExpression());
+			} catch(NullPointerException npe) {
+				Variable var = getVariable(e.getName());
+				e.setType(var.getType());
+			}
+		}
+		
+		Type otherType = e.getType();
+		
 		if (mainType == Type.FLOAT32 && otherType == Type.INT) {
 			return Type.FLOAT32;
 		} else if (mainType == Type.UNKNOWN) {

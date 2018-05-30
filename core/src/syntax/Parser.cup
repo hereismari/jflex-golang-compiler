@@ -294,22 +294,27 @@ Literal        ::= BasicLit:blit               {: RESULT = blit; :}
 				   | FunctionLit; // BasicLit removed
 
 /* --------------- Expression ------------------ */
-UnaryExpr      ::= PrimaryExpr:pexp       {: RESULT = pexp; :}
+UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
                    | UnaryOp UnaryExpr;
  
-PrimaryExpr    ::= Operand:op                            {: RESULT = op; :}
-                   | Conversion                          {: RESULT = ""; :}
-                   | PrimaryExpr PrimaryExprOtherOptions {: RESULT = "" ;:};  // Obs: Missing MethodExpr
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
+                   | Conversion                               {: RESULT = "";   :}
+                   | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
 Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
 				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
 
 // Index, Slice and Arguments, HASH TypeAssertion
-PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
+PrimaryExprOtherOptions ::= IndexAndSlice
+							| Arguments 
+							| HASH DOT PAR_L Type PAR_R;
 
 Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;  // HOT FIX HASH
 ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
-OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!
+
+OptExpType     ::= ExpressionList
+                   | TypeLit OptCommaExp; // Incomplete!
+
 OptCommaExp    ::= COMMA ExpressionList |;
 
 IndexAndSlice  ::= SQRD_L Expression PossibleClose | SQRD_L PossibleClose2;
@@ -323,9 +328,9 @@ OptExpression  ::= Expression |;
 OptExpression2 ::= SQRD_R | COLON OptExpression; 
 Index ::= SQRD_L Expression SQRD_R;
 
-ExpressionList ::= Expression:exp ExpressionStar:exps         {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp.toString() + exps.toString(); :} ;
-ExpressionStar ::= COMMA:c Expression:exp ExpressionStar:exps {: Semantic.getInstance().addExpression((Expression) exp); RESULT = ", " + exp.toString() + exps.toString(); :}
-                   |                                          {: RESULT = ""; :} ;
+ExpressionList ::= Expression:exp ExpressionStar:exps         {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp; :} ;
+ExpressionStar ::= COMMA:c Expression:exp ExpressionStar:exps {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp; :}
+                   |;
 
 Conversion     ::= TypeConv NextConversion;
 NextConversion ::= PAR_L Expression OptComma PAR_R;
@@ -359,7 +364,7 @@ Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt |
 TopLevelDeclStar ::= TopLevelDecl SEMICOLON TopLevelDeclStar |;
 TopLevelDecl ::= Declaration | FunctionDecl | MethodDecl;
 
-FunctionDecl ::= FUNC IDENTIFIER:id  {: Semantic.getInstance().createNewFunction(id.toString()); :} Signature:s FunctionBodyOpt:fbody;
+FunctionDecl ::= FUNC IDENTIFIER:id  {: Semantic.getInstance().createNewFunction(id.toString()); :} Signature FunctionBodyOpt {: Semantic.getInstance().exitCurrentScope(); :} ;
 FunctionBodyOpt ::= Block |;
 
 MethodDecl ::= FUNC Parameters IDENTIFIER Signature FunctionBodyOpt;
@@ -462,8 +467,12 @@ GotoStmt ::= GOTO OptIdentifier;
 ContinueStmt ::= CONTINUE OptIdentifier;
 BreakStmt ::= BREAK OptIdentifier;
 
-ExpressionListStar ::= ExpressionList | ;
-ReturnStmt ::= RETURN ExpressionListStar;
+ExpressionListStar ::= ExpressionList:epl {: RESULT = epl;               :}
+					   |                  {: RESULT = new Expression();  :};
+
+
+/* ---------------- Return Statement --------------- */
+ReturnStmt ::= RETURN ExpressionListStar:epls {: Semantic.getInstance().FunctionAddReturnedExpression((Expression)epls);	 :};
 
 GoStmt ::= GO Expression;
 
