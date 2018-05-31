@@ -171,12 +171,10 @@ public class Semantic {
 				// Check in previous scopes
 				for (int i = scopeStack.size()-2; i >= 0; i--) {
 					if(scopeStack.get(i).getVariables().containsKey(varName)) {
-						System.out.println("found x in scope");
 						return scopeStack.get(i).getVariables().get(varName);
 					}
 				}
 				
-				System.out.println("did not found x");
 				// Check if exists in program
 				if(variables.containsKey(varName)) {
 					return variables.get(varName);
