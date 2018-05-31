@@ -12,6 +12,7 @@ import semantic.models.Type;
 import semantic.exceptions.SemanticException;
 import semantic.models.Expression;
 import semantic.models.Function;
+import semantic.models.IfElse;
 import semantic.models.ScopedEntity;
 import semantic.models.Variable;
 
@@ -312,7 +313,19 @@ public class Semantic {
 	}
 	
 	public void FunctionAddReturnedExpression(Expression e) throws SemanticException {
-		Function f = (Function) scopeStack.peek();
+
+		Function f = null;
+		for(int i = scopeStack.size()-1; i >= 0; i--) {
+			try {
+				f = (Function) scopeStack.get(i);
+			} catch(ClassCastException cce) {
+				
+			}
+		}
+		
+		if(f == null) {
+			throwSemanticException("Retun statement should be only inside a function.");
+		}
 		
 		if(e.getType() == Type.UNKNOWN) {
 			e.setType(getVariable(e.getName()).getType());
@@ -382,11 +395,13 @@ public class Semantic {
 
 	/* Scope related methods */
 	private void createNewScope(ScopedEntity scope) {
+		System.out.println("new " + scope);
 		scopeStack.push(scope);
 	}
 	
 	public void exitCurrentScope() throws SemanticException {
 		ScopedEntity scoped = scopeStack.pop();
+		System.out.println("out " + scoped);
 		
 		if (scoped instanceof Function)
 			((Function) scoped).validateReturnedType();
@@ -394,6 +409,26 @@ public class Semantic {
 	
 	public ScopedEntity getCurrentScope() {
 		return scopeStack.peek();
+	}
+	
+	public void createIf(Expression e) throws SemanticException {
+		if(e.getType() == Type.UNKNOWN) {
+			try {
+				System.out.println(functions);
+				Function f = functions.get(e.getName());
+				e.setType(f.getReturnType());
+				e.setValue(f.getReturnedExpression());
+			} catch(NullPointerException npe) {
+				Variable var = getVariable(e.getName());
+				e.setType(var.getType());
+			}
+		}
+		
+		createNewScope(new IfElse(e));
+	}
+	
+	public void createElse() {
+		createNewScope(new IfElse());
 	}
 	
 	/* Declaration related methods */
