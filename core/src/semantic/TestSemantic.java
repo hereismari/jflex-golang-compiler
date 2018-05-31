@@ -29,7 +29,6 @@ public class TestSemantic {
 			Parser p = new Parser(lexer, csf);
 			System.out.println("Parsing: " + sourceCode);
 			p.parse();
-			// p.debug_parse();
 			System.out.println("Parsing finished!");
 		} catch (SemanticException e) {
 			e.printStackTrace();

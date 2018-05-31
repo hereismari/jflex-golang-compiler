@@ -141,12 +141,12 @@ public class Semantic {
 			throwSemanticException("Variable " + var.getName() + " was already declared in this scope.");
 		
 		if (!scopeStack.isEmpty()) {
+			System.out.println("Adding variable in scope: " + var);
 			scopeStack.peek().addVariable(var);
 		} else {
+			System.out.println("Adding variable in variables: " + var);
 			variables.put(var.getName(), var);
 		}
-		
-		System.out.println("Adding variable: " + var.getName());
 		System.out.println(variables);
 	}
 	
@@ -163,22 +163,25 @@ public class Semantic {
 			if (scopeStack.isEmpty()) {
 				return variables.get(varName);
 			} else {
-				// Check if exists in program
-				if(variables.containsKey(varName)) {
-					return variables.get(varName);
-				}
-				
 				// Check in current scope
 				if(scopeStack.peek().getVariables().containsKey(varName)) {
 					return scopeStack.peek().getVariables().get(varName);
 				}
 				
 				// Check in previous scopes
-				for (int i = 0 ; i < scopeStack.size() - 1 ; i++) {
-					if(scopeStack.peek().getVariables().containsKey(varName)) {
-						return scopeStack.peek().getVariables().get(varName);
+				for (int i = scopeStack.size()-2; i >= 0; i--) {
+					if(scopeStack.get(i).getVariables().containsKey(varName)) {
+						System.out.println("found x in scope");
+						return scopeStack.get(i).getVariables().get(varName);
 					}
 				}
+				
+				System.out.println("did not found x");
+				// Check if exists in program
+				if(variables.containsKey(varName)) {
+					return variables.get(varName);
+				}
+				
 			}
 		} catch(NullPointerException e) {
 			throwSemanticException("Variable " + varName + " was not declared.");
@@ -226,6 +229,8 @@ public class Semantic {
 		Type resultingType = this.validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
 		Expression resultingExpr = new Expression(resultingType, exprValue);
+		
+		System.out.println(e1.getValue() + " " + op + " " + e2.getValue());
 
 		return resultingExpr;
 	}
@@ -243,6 +248,8 @@ public class Semantic {
 	private Type validateBinOperation(Expression e1, String op, Expression e2) throws SemanticException {
 		Expression e1typed = assignTypeIfNeeded(e1);
 		Expression e2typed = assignTypeIfNeeded(e2);
+		
+		System.out.println(e1 + " " + op + " " + e2);
 		
 		if (e1.getType() == Type.UNKNOWN && e2.getType() == Type.UNKNOWN) {
 			if (e1typed.getType() != e2typed.getType()) {
@@ -266,7 +273,7 @@ public class Semantic {
 	}
 
 	private boolean isRelOp(String op) {
-		return op == "==" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=";
+		return op == "==" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=" || op == "||" || op == "&&";
 	}
 
 	private void validateBinOpTypes(Type t1, Type t2, String op) throws SemanticException {
@@ -347,7 +354,6 @@ public class Semantic {
 		}
 		
 		e = assignTypeIfNeeded(e);
-		
 		f.setReturnedExpression(e);
 		clearBuffers();
 	}
@@ -569,13 +575,15 @@ public class Semantic {
 		if(newExpression.getType() == Type.UNKNOWN) {
 			try {
 				Function f = functions.get(e.getName());
+				System.out.println(f.getReturnType());
 				newExpression.setType(f.getReturnType());
-				newExpression.setValue(f.getReturnedExpression());
+				newExpression.setValue(f.getReturnedExpression().getValue());
 			} catch(NullPointerException npe) {
 				Variable var = getVariable(e.getName());
 				newExpression.setType(var.getType());
 			}
 		}
+		
 		return newExpression;
 	}
 
