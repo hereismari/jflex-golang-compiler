@@ -61,3 +61,7 @@ run core/src/lexical/Generator.java
 ### Syntax Analysis
 
 run core/src/syntax/Generator.java
+
+### Semantic Analysis
+
+run core/src/semantic/TestSemantic.java
