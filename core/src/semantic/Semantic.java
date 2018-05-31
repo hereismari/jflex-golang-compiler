@@ -163,13 +163,8 @@ public class Semantic {
 			if (scopeStack.isEmpty()) {
 				return variables.get(varName);
 			} else {
-				// Check in current scope
-				if(scopeStack.peek().getVariables().containsKey(varName)) {
-					return scopeStack.peek().getVariables().get(varName);
-				}
-				
-				// Check in previous scopes
-				for (int i = scopeStack.size()-2; i >= 0; i--) {
+				// Check in scopes
+				for (int i = scopeStack.size()-1; i >= 0; i--) {
 					if(scopeStack.get(i).getVariables().containsKey(varName)) {
 						return scopeStack.get(i).getVariables().get(varName);
 					}
