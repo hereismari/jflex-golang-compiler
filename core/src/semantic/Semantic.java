@@ -472,12 +472,12 @@ public class Semantic {
 		clearBuffers();
 	}
 
-	public void updateVars(String assigment) throws SemanticException {
-		System.out.println("Assignment");
+	public void updateVars(String assignment) throws SemanticException {
+		System.out.println("Assignment: " + assignment);
 		System.out.println(expBuffer.toString());
 		System.out.println(expBufferBeforeAssign.toString());
 
-		if (assigment == "=") {
+		if (assignment == "=") {
 			if (expBuffer.size() != expBufferBeforeAssign.size()) {
 				throwSemanticException(
 						"assignment count mismatch: " + expBufferBeforeAssign.size() + " != " + expBuffer.size());
@@ -496,9 +496,9 @@ public class Semantic {
 				}
 			}
 		} else {
-			if (expBuffer.size() != expBufferBeforeAssign.size() && expBuffer.size() != 1) {
+			if (expBuffer.size() != 1 || expBufferBeforeAssign.size() != 1) {
 				throwSemanticException(
-						"assignment count mismatch: " + expBufferBeforeAssign.size() + " != " + expBuffer.size());
+						"assignment " + assignment + " doest not allow multiple variables.");
 			} else {
 				Expression expbefr = expBufferBeforeAssign.get(0);
 				Expression exp = expBuffer.get(0);
