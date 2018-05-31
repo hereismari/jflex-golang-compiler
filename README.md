@@ -9,7 +9,7 @@ A Golang compiler implementation.
 * escopo comum
    * Realizar checagem de tipos e contextos:
      - [x] Tipos existentes (MARIANNE: considerando String, float, int);
-     - [ ] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
+     - [X] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
      - [X] Declaração;
      - [X] Uso de Variáveis;
      - [X] Comandos de atribuição;
@@ -17,9 +17,9 @@ A Golang compiler implementation.
      - [X] literais (inteiros, string, booleanos).
 
 * escopo A
-     - [ ] Funções
+     - [X] Funções
      - [X] Expressões relacionais
-     - [ ] Comandos condicionais: if-else
+     - [X] Comandos condicionais: if-else
 
 ## Syntax Analysis (portuguese only)
 
