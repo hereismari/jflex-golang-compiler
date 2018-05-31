@@ -301,14 +301,11 @@ Literal        ::= BasicLit:blit               {: RESULT = blit; :}
  
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
-                   | UnaryOp:uop UnaryExpr:uexpr;                  {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
+                   | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
 PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
-                   | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
-												  exp.setValue("(" + e.toString() + ")");
-												  RESULT = exp; :};
 
 Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
 				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};

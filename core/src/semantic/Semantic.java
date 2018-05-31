@@ -166,7 +166,7 @@ public class Semantic {
 		Type exprType = expr.getType();
 
 		if (exprType == Type.UNKNOWN) {
-			exprType = this.variables.get(expr.getName()).getType();
+			exprType = getVariable(expr.getName()).getType();
 		}
 
 		this.validateUnaryOperation(op, exprType);
