@@ -108,6 +108,7 @@ non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
 
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, ExpressionList, UnaryExpr, PrimaryExpr;
+non terminal BinExpression, MulExpression;
 non terminal X, Y;
 
 non terminal Conversion, NextConversion;
@@ -251,8 +252,7 @@ RelOp    ::= EQ_OP:eqop        {: RESULT = eqop;  :}
 BinOp    ::= OR_OP:orop        {: RESULT = orop;  :}
              | AND:and         {: RESULT = and;   :}
              | RelOp:relop     {: RESULT = relop; :}
-             | AddOp:addop     {: RESULT = addop; :}
-             | MulOp:mulop     {: RESULT = mulop; :};
+             | AddOp:addop     {: RESULT = addop; :};
 
 /* --------------- Composite literal------------ */
 CompositeLit     ::= LiteralType LiteralValue;
@@ -307,8 +307,13 @@ PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
-Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
-				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
+Expression     ::= BinExpression:binexp                      {: RESULT = binexp; :};
+
+BinExpression ::= BinExpression:e1 BinOp:op MulExpression:e2 {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+                  | MulExpression:mulexp                     {: RESULT = mulexp; :};
+
+MulExpression ::= MulExpression:e1 MulOp:op UnaryExpr:e2     {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+                  | UnaryExpr:uexpr                          {: RESULT = uexpr; :};
 
 // Index, Slice and Arguments, HASH TypeAssertion
 PrimaryExprOtherOptions ::= IndexAndSlice
