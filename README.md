@@ -11,14 +11,14 @@ A Golang compiler implementation.
      - [x] Tipos existentes (MARIANNE: considerando String, float, int);
      - [ ] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
      - [X] Declaração;
-     - [ ] Uso de Variáveis;
+     - [X] Uso de Variáveis;
      - [X] Comandos de atribuição;
-     - [ ] Expressões aritméticas;
+     - [X] Expressões aritméticas;
      - [X] literais (inteiros, string, booleanos).
 
 * escopo A
      - [ ] Funções
-     - [ ] Expressões relacionais
+     - [X] Expressões relacionais
      - [ ] Comandos condicionais: if-else
 
 ## Syntax Analysis (portuguese only)

@@ -162,6 +162,41 @@ public class Semantic {
 		expBuffer.clear();
 	}
 
+	public Expression calculateUnaryExpr(String op, Expression expr) throws SemanticException {
+		Type exprType = expr.getType();
+
+		if (exprType == Type.UNKNOWN) {
+			exprType = this.variables.get(expr.getName()).getType();
+		}
+
+		this.validateUnaryOperation(op, exprType);
+		String exprValue = op + expr.getValue();
+		Expression resultingExpr = new Expression(exprType, exprValue);
+		return resultingExpr;
+	}
+
+	private void validateUnaryOperation(String op, Type exprType) throws SemanticException {
+		switch (exprType) {
+		case BOOL:
+			if (op == "+" || op == "-") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		case INT:
+			if (op == "!") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		case FLOAT32:
+			if (op == "!") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
+		default:
+			throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+		}
+	}
+
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
 		Type resultingType = this.validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
@@ -194,30 +229,47 @@ public class Semantic {
 			}
 
 			validateSpecificOp(e1Type, op);
-			validateSpecificOp(e2Type, op);
-			return e1Type;
+			return isRelOp(op) ? Type.BOOL : e1Type;
 		} else if (e1.getType() == Type.UNKNOWN) {
 			Type e1Type = getVariable(e1.getName()).getType();
 
-			validateSpecificOp(e1Type, op);
-			validateSpecificOp(e2.getType(), op);
+			validateBinOpTypes(e1Type, e2.getType(), op);
 			return binOpTypeCoersion(e1Type, e2.getType(), op);
 		} else if (e2.getType() == Type.UNKNOWN) {
 			Type e2Type = getVariable(e2.getName()).getType();
 
-			validateSpecificOp(e2Type, op);
-			validateSpecificOp(e1.getType(), op);
+			validateBinOpTypes(e2Type, e1.getType(), op);
 			return binOpTypeCoersion(e2Type, e1.getType(), op);
 		} else {
-			validateSpecificOp(e1.getType(), op);
-			validateSpecificOp(e2.getType(), op);
+			validateBinOpTypes(e1.getType(), e2.getType(), op);
 
-			return e2.getType();
+			return isRelOp(op) ? Type.BOOL : e2.getType();
 		}
+	}
+
+	private boolean isRelOp(String op) {
+		return op == "==" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=";
+	}
+
+	private void validateBinOpTypes(Type t1, Type t2, String op) throws SemanticException {
+		if ((t1 == Type.STRING && t2 != Type.STRING) || (t1 == Type.BOOL && t2 != Type.BOOL)) {
+			throwSemanticException(
+					"Invalid types " + t1.toString() + " and " + t2.toString() + " for the " + op + " operation");
+		} else if ((t2 == Type.STRING && t1 != Type.STRING) || (t2 == Type.BOOL && t1 != Type.BOOL)) {
+			throwSemanticException(
+					"Invalid types " + t1.toString() + " and " + t2.toString() + " for the " + op + " operation");
+		}
+		validateSpecificOp(t1, op);
+		validateSpecificOp(t2, op);
 	}
 
 	private void validateSpecificOp(Type exprType, String op) throws SemanticException {
 		switch (exprType) {
+		case BOOL:
+			if (op != "&&" && op != "||" && op != "==" && op != "!=") {
+				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
+			}
+			break;
 		case INT:
 			if (op == "&&" || op == "||") {
 				throwSemanticException("Invalid operand " + op + " for type " + exprType.toString());
@@ -433,6 +485,10 @@ public class Semantic {
 	}
 
 	public Type binOpTypeCoersion(Type mainType, Type otherType, String op) throws SemanticException {
+		if (isRelOp(op)) {
+			return Type.BOOL;
+		}
+
 		if ((mainType == Type.FLOAT32 || mainType == Type.INT)
 				&& (otherType == Type.FLOAT32 || otherType == Type.INT)) {
 			return mainType;

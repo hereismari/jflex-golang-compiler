@@ -32,5 +32,22 @@ func main() {
 	a = 1 - 2 * 3 + (4 * (4 / 3));
 	
 	a = 1 - 2 * 3;
-	a = 1 * 2 + 3;
+	a = (-1 * 2) - 3;
+	
+	b = -1 + 2;
+	
+	var u bool = true;
+	u = false;
+	
+	u = true && false;
+	u = true || false;
+	
+	u = 1 == 2;
+	u = 1 < 2;
+	u = 1 != 2;
+	u = 1 > 2.0;
+	u = "teste" > "lala";
+	u = true == true;
+	u = true != false;
+	u = "teste" == "teste";
 };

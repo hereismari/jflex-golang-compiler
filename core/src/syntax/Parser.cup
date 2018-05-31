@@ -27,7 +27,7 @@ parser code {:
 // keywords
 terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
 terminal MAP, STRUCT, CHAN, ELSE, GOTO, PACKAGE, SWITCH, CONST;
-terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR;
+terminal FALLTHROUGH, IF, RANGE, TYPE, CONTINUE, FOR, IMPORT, RETURN, VAR, TRUE, FALSE;
 
 // operation
 terminal PLUS, ADDRESS, AND, MINUS, OR, LT, LTE, MUL, XOR;
@@ -103,7 +103,7 @@ non terminal AuxChannelType1;
 non terminal AuxResult, AuxResult2, AuxResult3;
 
 /* --------------- Basics ---------------------- */
-non terminal BasicLit, CompositeLit, FunctionLit;
+non terminal BasicLit, CompositeLit, FunctionLit, BooleanLit;
 non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
 
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
@@ -215,7 +215,10 @@ BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.I
                  | FLOAT_LITERAL:f  {: Expression floatLit = new Expression(Type.FLOAT32, f.toString()); RESULT = floatLit;  :}
                  | IMG_LITERAL
                  | RUNE_LITERAL
-                 | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit;  :};
+                 | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit; :};
+
+BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString()); RESULT = trueLit;       :}
+			   | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;     :};
 
 UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :} 
 			| MINUS:minus      {: RESULT = minus; :}
@@ -291,15 +294,19 @@ Operand        ::= Literal:lit                 {: RESULT = lit;  :}
                    | PAR_L Expression:e PAR_R  {: RESULT = e;    :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}
-				   | FunctionLit; // BasicLit removed
-
+				           | FunctionLit               // BasicLit removed
+                   | BooleanLit:bolit          {: RESULT = bolit; :};
+ 
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
-                   | UnaryOp UnaryExpr;
+                   | UnaryOp UnaryExpr;                  {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
 PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
+                   | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
+												  exp.setValue("(" + e.toString() + ")");
+												  RESULT = exp; :};
 
 Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
 				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
