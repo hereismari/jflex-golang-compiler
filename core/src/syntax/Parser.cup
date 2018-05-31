@@ -1,4 +1,6 @@
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+import java_cup.runtime.*;
+
 import semantic.*;
 import semantic.models.*;
 
@@ -23,6 +25,7 @@ parser code {:
         System.exit(-1);
     }
 :};
+
 
 // keywords
 terminal BREAK, DEFAULT, FUNC, INTERFACE, SELECT, CASE, DEFER, GO;
@@ -108,7 +111,9 @@ non terminal CompositeLitIncomplete, LiteralTypeIncomplete;
 
 non terminal UnaryOp, MulOp, AddOp, RelOp, BinOp;
 non terminal Expression, ExpressionList, UnaryExpr, PrimaryExpr;
-non terminal BinExpression, MulExpression;
+// Fix precedence
+non terminal OrExpression, AndExpression, RelopExpression, MulExpression, AddExpression;
+
 non terminal X, Y;
 
 non terminal Conversion, NextConversion;
@@ -193,13 +198,13 @@ Precedence    Operator
     1             ||
 */
 
+precedence left CHANNEL_OP;  // HOTFIX: Franklin has given permission.
+
 precedence left OR_OP;
 precedence left AND;
 precedence left EQ_OP, NE_OP, LT, LTE, GT, GTE;
-precedence left PLUS, MINUS, OR, XOR;
 precedence left MUL, DIV, MOD, LEFT_OP, RIGHT_OP, ADDRESS, AND_NOT_OP;
-
-precedence left CHANNEL_OP;  // HOTFIX: Franklin has given permition.
+precedence left PLUS, MINUS, OR, XOR;
 
 start with SourceFile;
 
@@ -219,7 +224,7 @@ BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.I
                  | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit; :};
 
 BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString());  RESULT = trueLit;       :}
-	       | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;      :};
+	           | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;      :};
 
 UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :} 
 			| MINUS:minus      {: RESULT = minus; :}
@@ -229,11 +234,11 @@ UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :}
 			| ADDRESS:addr     {: RESULT = addr;  :}
 			| CHANNEL_OP:cop   {: RESULT = cop;   :};
 			
-MulOp    ::= MUL:mul           {: RESULT = mul; :}
-             | DIV:div         {: RESULT = div; :}
-             | MOD:mod         {: RESULT = mod; :}
-             | LEFT_OP:lop     {: RESULT = lop; :}
-             | RIGHT_OP:rop    {: RESULT = rop; :}
+MulOp    ::= MUL:mul           {: RESULT = mul;  :}
+             | DIV:div         {: RESULT = div;  :}
+             | MOD:mod         {: RESULT = mod;  :}
+             | LEFT_OP:lop     {: RESULT = lop;  :}
+             | RIGHT_OP:rop    {: RESULT = rop;  :}
              | ADDRESS:addr    {: RESULT = addr; :}
              | AND_NOT_OP:anop {: RESULT = anop; :};
 
@@ -252,7 +257,8 @@ RelOp    ::= EQ_OP:eqop        {: RESULT = eqop;  :}
 BinOp    ::= OR_OP:orop        {: RESULT = orop;  :}
              | AND:and         {: RESULT = and;   :}
              | RelOp:relop     {: RESULT = relop; :}
-             | AddOp:addop     {: RESULT = addop; :};
+             | AddOp:addop     {: RESULT = addop; :}
+             | MulOp:mulop     {: RESULT = mulop; :};
 
 /* --------------- Composite literal------------ */
 CompositeLit     ::= LiteralType LiteralValue;
@@ -307,13 +313,26 @@ PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
-Expression     ::= BinExpression:binexp                      {: RESULT = binexp; :};
+//Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
+//				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
 
-BinExpression ::= BinExpression:e1 BinOp:op MulExpression:e2 {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
-                  | MulExpression:mulexp                     {: RESULT = mulexp; :};
+Expression     ::= OrExpression:orexp                              {: RESULT = orexp; :};
 
-MulExpression ::= MulExpression:e1 MulOp:op UnaryExpr:e2     {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
-                  | UnaryExpr:uexpr                          {: RESULT = uexpr; :};
+OrExpression ::= OrExpression:e1 OR_OP:op AndExpression:e2         {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+				 | AndExpression:aexpr                             {: RESULT = aexpr; :};
+
+AndExpression ::= AndExpression:e1 AND:op RelopExpression:e2       {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+				  | RelopExpression:rexpr                          {: RESULT = rexpr; :};
+
+RelopExpression ::= RelopExpression:e1 RelOp:op AddExpression:e2   {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+				  | AddExpression:aexpr                            {: RESULT = aexpr; :};
+
+AddExpression ::= AddExpression:e1 AddOp:op MulExpression:e2       {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+                  | MulExpression:mulexp                           {: RESULT = mulexp; :};
+
+MulExpression ::= MulExpression:e1 MulOp:op UnaryExpr:e2           {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, op.toString(), (Expression) e2); :}
+                  | UnaryExpr:uexpr                                {: RESULT = uexpr; :};
+
 
 // Index, Slice and Arguments, HASH TypeAssertion
 PrimaryExprOtherOptions ::= IndexAndSlice

@@ -225,7 +225,8 @@ public class Semantic {
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
 		Type resultingType = this.validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
-		Expression resultingExpr = new Expression(resultingType, exprValue);
+		String exprName = e1.getName() + "," + e2.getName();
+		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
 
 		return resultingExpr;
 	}
@@ -243,20 +244,19 @@ public class Semantic {
 	private Type validateBinOperation(Expression e1, String op, Expression e2) throws SemanticException {
 		Expression e1typed = assignTypeIfNeeded(e1);
 		Expression e2typed = assignTypeIfNeeded(e2);
-		
-		if (e1.getType() == Type.UNKNOWN && e2.getType() == Type.UNKNOWN) {
+
+		if (e1.getName() != null && e2.getName() != null) {
 			if (e1typed.getType() != e2typed.getType()) {
-				throwSemanticException("Invalid types " + e1typed.getType().toString() +
-						               " and " + e2typed.getType().toString() + " for the " +
-						               op + " operation");
+				throwSemanticException("Invalid types " + e1typed.getType().toString() + " and "
+						+ e2typed.getType().toString() + " for the " + op + " operation");
 			}
 
 			validateSpecificOp(e1typed.getType(), op);
 			return isRelOp(op) ? Type.BOOL : e1typed.getType();
-		} else if (e1.getType() == Type.UNKNOWN) {
+		} else if (e1.getName() != null) {
 			validateBinOpTypes(e1typed.getType(), e2typed.getType(), op);
 			return binOpTypeCoersion(e1typed.getType(), e2typed.getType(), op);
-		} else if (e2.getType() == Type.UNKNOWN) {
+		} else if (e2.getName() != null) {
 			validateBinOpTypes(e2typed.getType(), e1typed.getType(), op);
 			return binOpTypeCoersion(e2typed.getType(), e1.getType(), op);
 		} else {
