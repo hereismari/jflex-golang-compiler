@@ -243,7 +243,6 @@ public class Semantic {
 	/* Function related methods */
 	
 	public void createNewFunction(String functionName) throws SemanticException {
-		// TODO: Check overload
 		if(functions.containsKey(functionName)) {
 			throwSemanticException(functionName + " already exists.");
 		}
@@ -288,18 +287,16 @@ public class Semantic {
 		System.out.println("checking " + expr);
 		System.out.println(expBuffer);
 		try {
-			Function f = functions.get(expr.getName());
-			List<Type> parameters = f.getParameterTypes();
+			Function fexpr = functions.get(expr.getName());
+			List<Type> parameters = fexpr.getParameterTypes();
 			
 			if(parameters.size() != expBuffer.size()) {
-				throwSemanticException("Function " + f.getName() + " receives " + parameters.size() + " parameters. " + expBuffer.size() + " parameters found instead.");
+				throwSemanticException("Function " + fexpr.getName() + " receives " + parameters.size() + " parameters. " + expBuffer.size() + " parameters found instead.");
 			}
 			
 			for(int i = 0; i < expBuffer.size(); i++) {
-				// TODO: if type unknown needs to get the variable/function
-				if(expBuffer.get(i).getType() != parameters.get(i)) {
-					throwSemanticException("Parameters have different types.");
-				}
+				Expression e = expBuffer.get(i);
+				typeCoersion(parameters.get(i), e);
 			}
 			
 		} catch (NullPointerException e) {
