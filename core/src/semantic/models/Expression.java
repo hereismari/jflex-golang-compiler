@@ -3,7 +3,13 @@ package semantic.models;
 public class Expression extends TypedEntity {
 
 	private String value;
-
+	
+	/* Empty expression */
+	public Expression() {
+		super(Type.VOID, null);
+		this.value = null;
+	}
+	
 	public Expression(Type type, String value) {
 		super(type, null);
 		this.value = value;

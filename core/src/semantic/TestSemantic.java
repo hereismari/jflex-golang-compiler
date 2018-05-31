@@ -9,11 +9,14 @@ import java.nio.file.Paths;
 import java_cup.runtime.ComplexSymbolFactory;
 import lexical.Lexer;
 import semantic.exceptions.SemanticException;
+import semantic.Semantic;
 import syntax.Parser;
 
 public class TestSemantic {
 
 	private static void parse(String sourceCode, ComplexSymbolFactory csf) throws Exception {
+		
+		Semantic.getInstance().clear();
 		
 		boolean exception = false;
 		

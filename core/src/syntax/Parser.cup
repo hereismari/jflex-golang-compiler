@@ -202,7 +202,9 @@ precedence left CHANNEL_OP;  // HOTFIX: Franklin has given permition.
 
 start with SourceFile;
 
-Identifier ::= IDENTIFIER | BLANK_IDENTIFIER;
+
+Identifier ::= IDENTIFIER:id          {: RESULT = id;  :}
+               | BLANK_IDENTIFIER:bid {: RESULT = bid; :};
 
 /* --------------- Grammar --------------------- */
 
@@ -215,8 +217,8 @@ BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.I
                  | RUNE_LITERAL
                  | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit; :};
 
-BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString()); RESULT = trueLit;       :}
-			   | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;     :};
+BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString());  RESULT = trueLit;       :}
+	       | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;      :};
 
 UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :} 
 			| MINUS:minus      {: RESULT = minus; :}
@@ -287,33 +289,38 @@ PackageClause ::= PACKAGE IDENTIFIER;
 
 /* --------------- Operand --------------------- */
 OperandStar    ::= OperandStar Operand |;
-Operand        ::= Literal:lit                 {: RESULT = lit; :}
+Operand        ::= Literal:lit                 {: RESULT = lit;  :}
                    | TypeName:tn               {: Expression expTn = new Expression(Type.UNKNOWN, tn.toString(), tn.toString()); RESULT = expTn;  :}
                    | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
 												  exp.setValue("(" + e.toString() + ")");
 												  RESULT = exp; :};
 
-Literal        ::= BasicLit:blit       {: RESULT = blit; :}
-				   | FunctionLit // BasicLit removed
-                   | BooleanLit:bolit  {: RESULT = bolit; :};
-
-/* --------------- Expression ------------------ */
-UnaryExpr      ::= PrimaryExpr:pexp       {: RESULT = pexp; :}
-                   | UnaryOp:uop UnaryExpr:uexpr {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
+Literal        ::= BasicLit:blit               {: RESULT = blit; :}
+				           | FunctionLit               // BasicLit removed
+                   | BooleanLit:bolit          {: RESULT = bolit; :};
  
-PrimaryExpr    ::= Operand:op                            {: RESULT = op;  :}
-                   | Conversion                          {: RESULT = "";  :}
-                   | PrimaryExpr PrimaryExprOtherOptions {: RESULT = "" ; :};  // Obs: Missing MethodExpr
+/* --------------- Expression ------------------ */
+UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
+                   | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
+ 
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
+                   | Conversion                               {: RESULT = "";   :}
+                   | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
 Expression     ::= UnaryExpr:uexp                           {: RESULT = uexp; :}
 				   | Expression:e1 BinOp:bop Expression:e2  {: RESULT = Semantic.getInstance().calculateExpr((Expression) e1, bop.toString(), (Expression) e2); :};
 
 // Index, Slice and Arguments, HASH TypeAssertion
-PrimaryExprOtherOptions ::= IndexAndSlice | Arguments | HASH DOT PAR_L Type PAR_R;
+PrimaryExprOtherOptions ::= IndexAndSlice
+							| Arguments 
+							| HASH DOT PAR_L Type PAR_R;
 
 Arguments      ::= HASH PAR_L ExpTypeEtc PAR_R;  // HOT FIX HASH
 ExpTypeEtc     ::= OptExpType OptEllipsisComma |;
-OptExpType     ::= ExpressionList | TypeLit OptCommaExp; // Incomplete!
+
+OptExpType     ::= ExpressionList
+                   | TypeLit OptCommaExp; // Incomplete!
+
 OptCommaExp    ::= COMMA ExpressionList |;
 
 IndexAndSlice  ::= SQRD_L Expression PossibleClose | SQRD_L PossibleClose2;
@@ -327,9 +334,9 @@ OptExpression  ::= Expression |;
 OptExpression2 ::= SQRD_R | COLON OptExpression; 
 Index ::= SQRD_L Expression SQRD_R;
 
-ExpressionList ::= Expression:exp ExpressionStar:exps         {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp.toString() + exps.toString(); :} ;
-ExpressionStar ::= COMMA:c Expression:exp ExpressionStar:exps {: Semantic.getInstance().addExpression((Expression) exp); RESULT = ", " + exp.toString() + exps.toString(); :}
-                   |                                          {: RESULT = ""; :} ;
+ExpressionList ::= Expression:exp ExpressionStar:exps         {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp; :} ;
+ExpressionStar ::= COMMA:c Expression:exp ExpressionStar:exps {: Semantic.getInstance().addExpression((Expression) exp); RESULT = exp; :}
+                   |;
 
 Conversion     ::= TypeConv NextConversion;
 NextConversion ::= PAR_L Expression OptComma PAR_R;
@@ -363,7 +370,7 @@ Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt |
 TopLevelDeclStar ::= TopLevelDecl SEMICOLON TopLevelDeclStar |;
 TopLevelDecl ::= Declaration | FunctionDecl | MethodDecl;
 
-FunctionDecl ::= FUNC IDENTIFIER Signature FunctionBodyOpt;
+FunctionDecl ::= FUNC IDENTIFIER:id  {: Semantic.getInstance().createNewFunction(id.toString()); :} Signature FunctionBodyOpt {: Semantic.getInstance().exitCurrentScope(); :} ;
 FunctionBodyOpt ::= Block |;
 
 MethodDecl ::= FUNC Parameters IDENTIFIER Signature FunctionBodyOpt;
@@ -445,10 +452,12 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF SimpleStmtAux Expression Block IfStmtAux;
+IfStmt         ::= IF SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block {: Semantic.getInstance().exitCurrentScope(); :} IfStmtAux;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
-IfStmtAux      ::= ELSE IfStmtAux2 | ;
-IfStmtAux2     ::= IfStmt | Block;
+
+IfStmtAux      ::=   ELSE IfStmt
+                   | ELSE {: Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScope(); :}
+				   | ;
 
 /* ------------------ SelectStmt ------------------- */
 SelectStmt  ::= SELECT CURLY_L CommClause CURLY_R;
@@ -466,8 +475,12 @@ GotoStmt ::= GOTO OptIdentifier;
 ContinueStmt ::= CONTINUE OptIdentifier;
 BreakStmt ::= BREAK OptIdentifier;
 
-ExpressionListStar ::= ExpressionList | ;
-ReturnStmt ::= RETURN ExpressionListStar;
+ExpressionListStar ::= ExpressionList:epl {: RESULT = epl;               :}
+					   |                  {: RESULT = new Expression();  :};
+
+
+/* ---------------- Return Statement --------------- */
+ReturnStmt ::= RETURN ExpressionListStar:epls {: Semantic.getInstance().FunctionAddReturnedExpression((Expression)epls);	 :};
 
 GoStmt ::= GO Expression;
 
@@ -500,9 +513,10 @@ Type ::= TypeName:tn {: RESULT = tn; :}
          | TypeLit | PAR_L Type PAR_R;
 
 TypeName     ::= IDENTIFIER:id AuxTypeName1:dotid {: RESULT = id.toString() + dotid.toString(); :}
-                 | BLANK_IDENTIFIER:b {: RESULT = b; :};
-AuxTypeName1 ::= DOT IDENTIFIER:id {: RESULT = "." + id.toString(); :}
-                 | {: RESULT = ""; :};
+                 | BLANK_IDENTIFIER:b             {: RESULT = b;                                :};
+
+AuxTypeName1 ::= DOT IDENTIFIER:id                {: RESULT = "." + id.toString();              :}
+                 |                                {: RESULT = "";                               :};
 
 TypeLit     ::= ArrayType | PointerType | SliceType | MapType | ChannelType | StructType | InterfaceType | FunctionType;
 
@@ -516,31 +530,38 @@ BaseType    ::= Type;
 
 /* --------------- Function -------------------- */
 FunctionType     ::= FUNC Signature;
-Signature        ::= Parameters AuxResult;
-AuxResult        ::= Result |;
+Signature        ::= Parameters:p AuxResult:ar   {: RESULT = p;  :};
 
-Result         ::= HASH PAR_L AuxResult2 PAR_R | TypeLit | TypeName;   // HOTFIX HASH
+AuxResult        ::= Result:r
+                     |;
+
+Result         ::= HASH PAR_L AuxResult2 PAR_R // HOTFIX HASH
+                  | TypeLit 
+                  | TypeName:tn   {:  Type type = Type.convertToType(tn.toString()); Semantic.getInstance().FunctionAddReturnType(type); RESULT = type; :};   
 AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
 AuxResult3     ::= IdentifierStar3 | DOT Identifier;
 
 Parameters          ::= PAR_L AuxParameters1 PAR_R;
-AuxParameters1      ::= ParameterList | ;
+AuxParameters1      ::= ParameterList
+                        |;
+
 OptComma            ::= COMMA |;
 
-ParameterList       ::= ParameterDecl;
+ParameterList       ::= ParameterDecl:pdecl  {: RESULT = pdecl; :};
 
 TypeNoIdentifier    ::= TypeLit | PAR_L Type PAR_R;
 ParameterDecl       ::= IdentifierListParam |
 					    ELLIPSIS Type ParameterDeclStar |
-					    TypeNoIdentifier ParameterDeclStar;
+					    TypeNoIdentifier:t ParameterDeclStar   {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().FunctionInitializeParameters(type); :};
 
 ParameterDeclStar   ::= COMMA ParameterDecl | COMMA | ;
-IdentifierListParam ::= Identifier IdentifierStar3;  // include all posibilities
-IdentifierStar3     ::= IdentifierStar2 |;
-IdentifierStar2     ::= COMMA IdentifierStar4 |
-                        ELLIPSIS Type ParameterDeclStar |
-                        Type ParameterDeclStar;
-IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
+
+IdentifierListParam ::= Identifier:id IdentifierStar2:t        {: Semantic.getInstance().FunctionAddParameter(id.toString()); Semantic.getInstance().FunctionInitializeParameters((Type)t); :};  // include all posibilities
+// IdentifierStar3     ::= IdentifierStar2 |;
+IdentifierStar2     ::= COMMA Identifier:id IdentifierStar2:t  {: Semantic.getInstance().FunctionAddParameter(id.toString()); Semantic.getInstance().FunctionInitializeParameters((Type)t); RESULT = t; :}
+                        | ELLIPSIS Type ParameterDeclStar
+                        | Type:t ParameterDeclStar             {: Type type = Type.convertToType(t.toString()); Semantic.getInstance().FunctionInitializeParameters(type); RESULT = type; :};
+//IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
 
 FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
 FuncIdentifierListAux1 ::= FuncIdentifierListAux1 COMMA Identifier |;
