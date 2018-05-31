@@ -217,8 +217,8 @@ BasicLit     ::= INT_LITERAL:i      {: Expression intLit = new Expression(Type.I
                  | RUNE_LITERAL
                  | STRING_LITERAL:s {: Expression stringLit = new Expression(Type.STRING, s.toString()); RESULT = stringLit; :};
 
-BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString()); RESULT = trueLit;       :}
-			   | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;     :};
+BooleanLit ::= TRUE:t               {: Expression trueLit = new Expression(Type.BOOL, t.toString());  RESULT = trueLit;       :}
+	       | FALSE:f            {: Expression falseLit = new Expression(Type.BOOL, f.toString()); RESULT = falseLit;      :};
 
 UnaryOp  ::= PLUS:plus         {: RESULT = plus;  :} 
 			| MINUS:minus      {: RESULT = minus; :}
@@ -291,7 +291,9 @@ PackageClause ::= PACKAGE IDENTIFIER;
 OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal:lit                 {: RESULT = lit;  :}
                    | TypeName:tn               {: Expression expTn = new Expression(Type.UNKNOWN, tn.toString(), tn.toString()); RESULT = expTn;  :}
-                   | PAR_L Expression:e PAR_R  {: RESULT = e;    :};
+                   | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
+												  exp.setValue("(" + e.toString() + ")");
+												  RESULT = exp; :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}
 				           | FunctionLit               // BasicLit removed
@@ -299,7 +301,7 @@ Literal        ::= BasicLit:blit               {: RESULT = blit; :}
  
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
-                   | UnaryOp UnaryExpr;                  {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
+                   | UnaryOp:uop UnaryExpr:uexpr;                  {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
 PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
                    | Conversion                               {: RESULT = "";   :}
