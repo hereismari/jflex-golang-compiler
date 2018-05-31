@@ -32,7 +32,7 @@ public class Function extends ScopedEntity {
 	}
 	
 	public void addParameter(Variable v) throws SemanticException {
-		if(parameters.contains(v) || getVariables().containsKey(v.getName())) {
+		if(getVariables().containsKey(v.getName())) {
 			throw new SemanticException("Variable already declared " + v.toString());
 		}
 		
@@ -83,8 +83,6 @@ public class Function extends ScopedEntity {
 	}
 
 	public void initializeParameters(Type type) {
-		System.out.println(parameters);
-		
 		for(Variable v: parameters) {
 			if(v.getType() == Type.UNKNOWN) {
 				v.setType(type);
