@@ -17,9 +17,9 @@ A Golang compiler implementation.
      - [X] literais (inteiros, string, booleanos).
 
 * escopo A
-     - [ ] Funções
+     - [X] Funções
      - [X] Expressões relacionais
-     - [ ] Comandos condicionais: if-else
+     - [X] Comandos condicionais: if-else
 
 ## Syntax Analysis (portuguese only)
 
