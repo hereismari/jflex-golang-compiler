@@ -46,6 +46,8 @@ func main() {
 	u = 1 < 2;
 	u = 1 != 2;
 	u = 1 > 2.0;
+        u = 1.0 <= 2;
+        u = 2 == 2.0;
 	u = "teste" > "lala";
 	u = true == true;
 	u = true != false;
