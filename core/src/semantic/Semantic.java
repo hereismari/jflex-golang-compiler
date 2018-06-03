@@ -16,12 +16,17 @@ import semantic.models.IfElse;
 import semantic.models.ScopedEntity;
 import semantic.models.Variable;
 
+import code_generation.CodeGenerator;
+
 public class Semantic {
 
-	/* Semantic instance */
+	/* Semantic instance. */
 	private static Semantic semantic = new Semantic();
 	
-	/* Global variables and functions declared */
+	/* CodeGenerator instance. */
+	private static CodeGenerator codeGenerator = new CodeGenerator();
+	
+	/* Global variables and functions declared. */
 	private Map<String, Variable> variables = new HashMap<>();
 	private Map<String, Function> functions = new HashMap<>();
 	
@@ -66,6 +71,10 @@ public class Semantic {
 
 	public static Semantic getInstance() {
 		return semantic;
+	}
+	
+	public CodeGenerator getCodeGenerator() {
+		return codeGenerator;
 	}
 
 	public Map<String, Variable> getVariables() {
@@ -146,6 +155,10 @@ public class Semantic {
 			System.out.println("Adding variable in variables: " + var);
 			variables.put(var.getName(), var);
 		}
+		
+		/* Code generation */
+		codeGenerator.variableDeclaration(var);
+				
 		System.out.println(variables);
 	}
 	
@@ -223,6 +236,10 @@ public class Semantic {
 		String exprName = formatExpressionName(e1, e2);
 		
 		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
+		
+		/* Code generation */
+		codeGenerator.generateOpCode(e1, e2, resultingExpr, op);
+
 		return resultingExpr;
 	}
 
@@ -481,7 +498,7 @@ public class Semantic {
 				// Checking if value type is valid
 				typeCoersion(type, exp);
 
-				addVariable(new Variable(type, varName, exp.getValue()));
+				addVariable(new Variable(type, varName, exp));
 			}
 		}
 
@@ -508,7 +525,7 @@ public class Semantic {
 
 					// Update var
 					var.setType(t);
-					var.setValue(exp.getValue());
+					var.setValue(exp);
 				}
 			}
 		} else {
@@ -525,7 +542,7 @@ public class Semantic {
 
 				// Update var
 				var.setType(t);
-				var.setValue(exp.getValue());
+				var.setValue(exp);
 				}
 			}
 
