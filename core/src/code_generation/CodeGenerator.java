@@ -4,8 +4,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Stack;
 
 import code_generation.models.OpToAssembly;
+import code_generation.models.IfScope;
+import code_generation.models.ElseScope;
 
 import semantic.Semantic;
 import semantic.exceptions.SemanticException;
@@ -25,9 +28,15 @@ public class CodeGenerator {
     
     /* Used to allocate registers. */
     private static int rnumber = -1;
-
-    //private Stack<IfScope> ifScopeStack = new Stack<>();
-    //private Stack<ElseScope> elseScopeStack = new Stack<>();
+    
+    private Stack<IfScope> ifScopeStack = new Stack<>();
+    private Stack<ElseScope> elseScopeStack = new Stack<>();
+    
+    public void init() {
+    	assemblyCode = "100: LD SP, #4000\n";
+    	labels = 100;
+    	rnumber = -1;
+    }
     
     /* File organization:
 	 * 		1. CodeGenerator Constructor
@@ -116,11 +125,58 @@ public class CodeGenerator {
         addCode(labels + ": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
     }
     
+    /*IF ELSE
+     * -------------------------------------------------------------------------------------
+    
+    public void generateBRCode(String s) {
+        labels += 8;
+        addCode(labels + ": BR " + s);
+    }
+
+    public void startIfScope(Object obj) throws SemanticException {
+        String reg =  getRegisterFromObject(obj);
+        labels += 8;
+        ifScopeStack.push(new IfScope(reg, labels));
+    }
+
+    public void exitIfScope() {
+        if (! ifScopeStack.empty()) {
+            Integer fakelabel = labels + 8;
+            addCode(ifScopeStack.pop().getCode(fakelabel));
+        }
+    }
+
+    public void startElseScope() {
+        labels += 8;
+        elseScopeStack.push(new ElseScope(labels));
+    }
+
+    public void exitElseScope() {
+        if (! elseScopeStack.empty()) {
+            Integer fakelabel = labels + 8;
+            addCode(elseScopeStack.pop().getCode(fakelabel));
+        }
+    } ----------------*/
     
     /* 5. Adding Code
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void addCode(String assemblyString) {
+    	  /*if (! ifScopeStack.empty()) {
+              IfScope scope = ifScopeStack.pop();
+              scope.code += assemblyString + "\n";
+              ifScopeStack.push(scope);
+          } else  if (! elseScopeStack.empty()) {
+              ElseScope scope = elseScopeStack.pop();
+              scope.code += assemblyString + "\n";
+              elseScopeStack.push(scope);
+          } else {
+              if (assemblyString.substring(assemblyString.length() - 1).equals("\n")) {
+                  assemblyCode += assemblyString;
+              } else {
+                  assemblyCode += assemblyString + "\n";
+              }
+          }*/
     	// TODO: Missing if/else checking
     	if (assemblyString.substring(assemblyString.length() - 1).equals("\n")) {
             assemblyCode += assemblyString;
@@ -134,4 +190,5 @@ public class CodeGenerator {
         labels += 8;
         addCode(labels + ": LD " + v.getValue().getReg() +", "+ v.getName());
     }
+    
 }
