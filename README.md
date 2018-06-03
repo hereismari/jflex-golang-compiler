@@ -81,3 +81,7 @@ run core/src/syntax/Generator.java
 ### Semantic Analysis
 
 run core/src/semantic/TestSemantic.java
+
+### Code Generation
+
+run core/src/semantic/TestCodeGenerator.java
