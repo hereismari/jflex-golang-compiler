@@ -120,14 +120,9 @@ public class Semantic {
 	 * */
 	public boolean checkVariableNameAllScopes(String name) {
 		Set<String> allVariables = new HashSet<String>();
-		if (scopeStack.isEmpty())
-			allVariables.addAll(variables.keySet());
-		else {
-			allVariables.addAll(scopeStack.peek().getVariables().keySet());
-			
-			for (int i = 0 ; i < scopeStack.size() - 1 ; i++) {
-				allVariables.addAll(scopeStack.get(i).getVariables().keySet());
-			}
+		allVariables.addAll(variables.keySet());
+		for (int i = 0 ; i < scopeStack.size(); i++) {
+			allVariables.addAll(scopeStack.get(i).getVariables().keySet());
 		}
 		return allVariables.contains(name);
 	}
@@ -144,6 +139,10 @@ public class Semantic {
 			System.out.println("Adding variable in scope: " + var);
 			scopeStack.peek().addVariable(var);
 		} else {
+			// if function exists with the same name in the same scope variable can't be declared
+			if(functions.containsKey(var.getName())) {
+				throwSemanticException(var.getName() + " redeclared in this block.");
+			}
 			System.out.println("Adding variable in variables: " + var);
 			variables.put(var.getName(), var);
 		}
@@ -379,6 +378,13 @@ public class Semantic {
 		System.out.println("Checking parameters:" + expr);
 		System.out.println(expBuffer);
 		try {
+			
+			// Variable can be declared in scope with the same name as a function
+			// if this is the case the function can not be called
+			if(checkVariableNameAllScopes(expr.getName())) {
+				throwSemanticException("cannot call non-function " + expr.getName());
+			}
+
 			Function fexpr = functions.get(expr.getName());
 			List<Type> parameters = fexpr.getParameterTypes();
 			
