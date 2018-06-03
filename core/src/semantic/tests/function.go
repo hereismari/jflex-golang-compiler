@@ -25,7 +25,10 @@ func main() {
     res = plus#(res, res);
     res = plus#(plus#(1, 2), res);
     
+    var plus int = 2;
     var aux string;
     
     aux = plus2#(aux, plus2#(plus_compiladores#(aux), aux));
+    plus = plusPlus#(plus, plus, aux);
+    plus = plusPlus#(plus, plus, plus2#(aux, plus2#(plus_compiladores#(aux), aux)));
 };
