@@ -101,7 +101,7 @@ StringLit            = {RawStringLit} | {IntStringLit}
 
 // White space and comments
 WhiteSpace     = {Newline} | [ \t\f]
-LineComment    = "//"{UnicodeChar}*{Newline}?
+LineComment    = "//"({UnicodeChar} | "||")*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
 Identifier     = {Letter}({Letter} | {UnicodeDigit})*
@@ -148,6 +148,9 @@ Invalid = {AuxInvalid}{AuxInvalid}*
 "import"                      { return symbol(IMPORT, "import"); }
 "return"                      { return symbol(RETURN, "return"); }
 "var"                         { return symbol(VAR, "var"); }
+
+"true"                        { return symbol(TRUE, "true"); }
+"false"                       { return symbol(FALSE, "false"); }
 
 // Operators
 
