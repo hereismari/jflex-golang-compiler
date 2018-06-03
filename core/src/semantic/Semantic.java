@@ -324,6 +324,11 @@ public class Semantic {
 	 * -----------------------------------------------------------------------------------
 	 * */
 	public void createNewFunction(String functionName) throws SemanticException {
+		
+		if(variables.containsKey(functionName)) {
+			throwSemanticException(functionName + " redeclared in this block.");
+		}
+		
 		if(functions.containsKey(functionName)) {
 			throwSemanticException(functionName + " already exists.");
 		}
