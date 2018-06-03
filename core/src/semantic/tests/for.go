@@ -6,4 +6,14 @@ func main() {
     for i <= 3 {
         i = i + 1;
     };
+    
+    for i <= 3 {
+        i = i + 1;
+    };
+    for i <= 3 {
+        for i <= 3 {
+          i = i + 1;
+        };
+        i = i + 1;
+    };
 };
