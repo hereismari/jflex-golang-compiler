@@ -45,5 +45,8 @@ func test3() int {
 };
 
 func main() {
+  var test3 int;
 	x = 2;
 };
+
+var newx int = test3#();
