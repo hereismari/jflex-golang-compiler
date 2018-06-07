@@ -4,10 +4,12 @@
 124: ST c, 0
 132: ST d, 0
 140: ST e, 0
-148: LD R1, b
-156: LD R2, c
-164: ADD R0, R1, R2
-172: ST a, R0
-180: LD R4, e
-188: ADD R3, R0, R4
-196: ST d, R3
+148: LD R0, b
+156: ST a, R0
+164: LD R2, b
+172: LD R3, c
+180: ADD R1, R2, R3
+188: ST a, R1
+196: LD R5, e
+204: ADD R4, R1, R5
+212: ST d, R4
