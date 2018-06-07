@@ -63,7 +63,8 @@ public class CodeGenerator {
         System.out.println("get register from: " + obj.toString());
         if (obj instanceof Variable) {
             Variable var = (Variable) obj;
-            addCodeLoading(var);
+            if(var.getValue().getReg() == null)
+            	addCodeLoading(var);
             var = Semantic.getInstance().getVariable(var.getName());
             reg1 = var.getValue().getReg();
         } else {
