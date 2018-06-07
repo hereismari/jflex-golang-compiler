@@ -1,5 +1,8 @@
 100: LD SP, #4000
-108: ST y, 0
-116: MUL R0, 3, y
-124: ADD R1, 1, R0
-132: ST x, R1
+108: ST x, 0
+116: ST y, 0
+124: ST z, 0
+132: LD R1, y
+140: LD R2, z
+148: ADD R0, R1, R2
+156: ST x, R0
