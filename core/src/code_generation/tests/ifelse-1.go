@@ -3,11 +3,11 @@ package name;
 var a int = 10;
 var b int = 2;
 
-func block() float32{
+func block() bool{
     if a > b {
-        return 1.0;
+        return true;
     } else {
-        return 0.0;
+        return false;
     };
 };
 
