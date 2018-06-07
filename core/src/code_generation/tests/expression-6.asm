@@ -1,0 +1,17 @@
+100: LD SP, #4000
+108: ST a, 0
+116: ST b, 0
+124: ST c, 0
+132: ST d, 0
+140: ST e, 0
+148: LD R1, b
+156: LD R2, c
+164: MUL R0, R1, R2
+172: LD R4, e
+180: MUL R3, R4, 2
+188: DIV R5, R3, 3
+196: LD R7, a
+204: MUL R6, R5, R7
+212: MOD R8, R6, 3
+220: ADD R9, R0, R8
+228: ST a, R9
