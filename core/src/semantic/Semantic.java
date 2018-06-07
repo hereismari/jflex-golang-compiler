@@ -127,7 +127,7 @@ public class Semantic {
 	/* 3. Variables
 	 * -----------------------------------------------------------------------------------
 	 * */
-	public boolean checkVariableNameAllScopes(String name) {
+	public boolean checkVariableAllScopes(String name) {
 		Set<String> allVariables = new HashSet<String>();
 		allVariables.addAll(variables.keySet());
 		for (int i = 0 ; i < scopeStack.size(); i++) {
@@ -145,14 +145,14 @@ public class Semantic {
 			throwSemanticException("Variable " + var.getName() + " was already declared in this scope.");
 		
 		if (!scopeStack.isEmpty()) {
-			System.out.println("Adding variable in scope: " + var);
+			System.out.println("Adding variable in specific scope: " + var);
 			scopeStack.peek().addVariable(var);
 		} else {
 			// if function exists with the same name in the same scope variable can't be declared
 			if(functions.containsKey(var.getName())) {
 				throwSemanticException(var.getName() + " redeclared in this block.");
 			}
-			System.out.println("Adding variable in variables: " + var);
+			System.out.println("Adding variable in main scope: " + var);
 			variables.put(var.getName(), var);
 		}
 		
@@ -231,14 +231,24 @@ public class Semantic {
 	}
 
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
-		Type resultingType = this.validateBinOperation(e1, op, e2);
+		Type resultingType = validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
 		String exprName = formatExpressionName(e1, e2);
 		
+
+		/* Code generation */
 		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
 		
-		/* Code generation */
-		codeGenerator.generateOpCode(e1, e2, resultingExpr, op);
+		Object ob1 = e1;
+		Object ob2 = e2;
+		if(checkVariableAllScopes(e1.getName())) {
+			ob1 = getVariable(e1.getName());
+		}
+		if(checkVariableAllScopes(e2.getName())) {
+			ob2 = getVariable(e2.getName());
+		}
+
+		resultingExpr = codeGenerator.generateOpCode(ob1, ob2, resultingExpr, op);
 
 		return resultingExpr;
 	}
@@ -248,11 +258,11 @@ public class Semantic {
 		String e2Name = e2.getName();
 
 		if (e1Name != null && e2Name != null) {
-			return e1Name + e2Name;
+			return "Var: " + e1Name + " Var: " + e2Name;
 		} else if (e1Name != null) {
-			return e1Name;
+			return "Var: " + e1Name;
 		} else if (e2Name != null) {
-			return e2Name;
+			return "Var: " + e2Name;
 		}
 		return null;
 	}
@@ -403,7 +413,7 @@ public class Semantic {
 			
 			// Variable can be declared in scope with the same name as a function
 			// if this is the case the function can not be called
-			if(checkVariableNameAllScopes(expr.getName())) {
+			if(checkVariableAllScopes(expr.getName())) {
 				throwSemanticException("cannot call non-function " + expr.getName());
 			}
 
@@ -509,6 +519,18 @@ public class Semantic {
 
 		clearBuffers();
 	}
+	
+	public Variable updateVar(Expression expbefr, Expression exp) throws SemanticException {
+		// Expbefr is for sure a variable since its an assignment
+		Variable var = getVariable(expbefr.getName());
+		Type t = typeCoersion(var.getType(), exp);
+
+		// Update var
+		var.setType(t);
+		var.setValue(exp);
+		
+		return var;
+	}
 
 	public void updateVars(String assignment) throws SemanticException {
 		System.out.println("Assignment: " + assignment);
@@ -523,14 +545,10 @@ public class Semantic {
 				for (int i = 0; i < expBuffer.size(); i++) {
 					Expression expbefr = expBufferBeforeAssign.get(i);
 					Expression exp = expBuffer.get(i);
-
-					// Expbefr is for sure a variable since its an assignment
-					Variable var = getVariable(expbefr.getName());
-					Type t = typeCoersion(var.getType(), exp);
-
-					// Update var
-					var.setType(t);
-					var.setValue(exp);
+					Variable var = updateVar(expbefr, exp);
+					
+					/* Code generation */
+					codeGenerator.variableDeclaration(var);
 				}
 			}
 		} else {
@@ -540,16 +558,12 @@ public class Semantic {
 			} else {
 				Expression expbefr = expBufferBeforeAssign.get(0);
 				Expression exp = expBuffer.get(0);
-
-				// Expbefr is for sure a variable since its an assignment
-				Variable var = getVariable(expbefr.getName());
-				Type t = typeCoersion(var.getType(), exp);
-
-				// Update var
-				var.setType(t);
-				var.setValue(exp);
-				}
+				Variable var = updateVar(expbefr, exp);
+				
+				/* Code generation */
+				codeGenerator.variableDeclaration(var);
 			}
+		}
 
 		clearBuffers();
 	}

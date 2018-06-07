@@ -44,6 +44,11 @@ public class CodeGenerator {
 	 * */
     public CodeGenerator() {}
 
+    public void init() {
+    	labels = 100;
+    	assemblyCode = "100: LD SP, #4000\n";
+        rnumber = -1;
+    }
     
 	/* 2. Registers
 	 * -----------------------------------------------------------------------------------
@@ -55,9 +60,11 @@ public class CodeGenerator {
     
     public String getRegisterFromObject(Object obj) throws SemanticException {
         String reg1;
+        System.out.println("get register from: " + obj.toString());
         if (obj instanceof Variable) {
             Variable var = (Variable) obj;
-            addCodeLoading(var);
+            if(var.getValue().getReg() == null)
+            	addCodeLoading(var);
             var = Semantic.getInstance().getVariable(var.getName());
             reg1 = var.getValue().getReg();
         } else {
@@ -76,6 +83,7 @@ public class CodeGenerator {
         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(sourceCode)));
         writer.write(assemblyCode);
         writer.close();
+        init();
     }
 
     
@@ -84,6 +92,7 @@ public class CodeGenerator {
 	 * */
     public void variableDeclaration(Variable var) throws SemanticException {
         String reg;
+        System.out.println("declaring variable: " + var);
         if (var.getValue().getValue() != null) {
             if (var.getValue().getReg() == null) {
             	reg = var.getValue().getValue().toString();
@@ -99,7 +108,7 @@ public class CodeGenerator {
     /* 4. Operations
 	 * -----------------------------------------------------------------------------------
 	 * */
-    public void generateOpCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
+    public Expression generateOpCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
     	// Allocate register to resulting expression
     	String reg = allocateRegister();
         exp.setReg(reg);
@@ -108,6 +117,8 @@ public class CodeGenerator {
         String reg2 = getRegisterFromObject(obj2);
         labels += 8;
         addCode(labels + ": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        
+        return exp;
     }
     
     public void generateOpCode(Object obj, Expression exp, String op) throws SemanticException {
