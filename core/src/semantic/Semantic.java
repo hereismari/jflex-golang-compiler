@@ -376,6 +376,9 @@ public class Semantic {
 		System.out.println("Creating function: " + functionName);
 		System.out.println(functions);
 		createNewScope(f);
+		
+		/* Code generation */
+		codeGenerator.createFunction(f);
 	}
 	
 	public void FunctionAddReturnType(Type type) {
@@ -389,18 +392,23 @@ public class Semantic {
 		for(int i = scopeStack.size()-1; i >= 0; i--) {
 			try {
 				f = (Function) scopeStack.get(i);
+				break;
 			} catch(ClassCastException cce) {
-				
+				// IfElse: do nothing
 			}
 		}
 		
 		if(f == null) {
-			throwSemanticException("Retun statement should be only inside a function.");
+			throwSemanticException("Retun statement should be inside a function.");
 		}
 		
 		e = assignTypeIfNeeded(e);
 		f.setReturnedExpression(e);
 		clearBuffers();
+		
+		/* Code generation */
+		codeGenerator.addReturnCode();
+		
 	}
 	
 	public void FunctionAddParameter(String varName) throws SemanticException {
@@ -444,29 +452,11 @@ public class Semantic {
 		}
 		
 		expBuffer.clear();
+		
+		/* Code generation */
+		codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
-	
-	public boolean checkFunctionName(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null;
-	}
-	
-	public boolean checkFunctionCall(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null && f.getParameterTypes().size() == 0;
-	}
-	
-	public boolean checkFunctionCall(String functionName, Variable[] variables) {
-		Function f = functions.get(functionName);
-		if (f != null && f.getParameterTypes().size() == variables.length) {
-			for (int i = 0 ; i < variables.length ; i++) {
-				if (!variables[i].getType().equals(f.getParameterTypes().get(i)))
-					return false;
-			}
-			return true;
-		}
-		return false;
-	}
+
 
 	/* 6. Scope
 	 * -----------------------------------------------------------------------------------
@@ -477,8 +467,12 @@ public class Semantic {
 	
 	public void exitCurrentScope() throws SemanticException {
 		ScopedEntity scoped = scopeStack.pop();
-		if (scoped instanceof Function)
+		if (scoped instanceof Function) {
 			((Function) scoped).validateReturnedType();
+		
+			/* Code generation */
+			codeGenerator.endFunction();
+		}
 	}
 	
 	public ScopedEntity getCurrentScope() {
