@@ -91,19 +91,13 @@ public class CodeGenerator {
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void variableDeclaration(Variable var) throws SemanticException {
-        String reg;
         System.out.println("declaring variable: " + var);
         if (var.getValue().getValue() != null) {
             if (var.getValue().getReg() == null) {
-            	if (var.getValue().getName() != null) {
-            		addCodeLoadingExpression(var.getValue());
-            		reg = var.getValue().getReg().toString();
-            	} else {
-            		reg = var.getValue().getValue().toString();
-            	}
-            } else {
-                reg = var.getValue().getReg().toString();
+            	addCodeLoadingExpression(var.getValue());
             }
+            
+            String reg = var.getValue().getReg().toString();
             labels += 8;
             addCode(labels + ": ST " + var.getName() + ", " + reg);
         }
@@ -164,7 +158,7 @@ public class CodeGenerator {
     public void addCodeLoadingExpression(Expression e) throws SemanticException {
         e.setReg(allocateRegister());
         labels += 8;
-        addCode(labels + ": LD " + e.getReg() +", "+ e.getName());
+        addCode(labels + ": LD " + e.getReg() +", "+ e.getValue());
     }
     
     public void addCodeLoading(Variable v) throws SemanticException {

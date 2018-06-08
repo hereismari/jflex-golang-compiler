@@ -8,10 +8,10 @@
 156: ADD R4, 3, R3
 164: MUL R5, -1, R4
 172: ST z, R5
-180: ST a, true
-188: LD R7, a
-196: NOT R6, R7
-204: NOT R8, R6
+180: LD R6, true
+188: ST a, R6
+196: NOT R7, R6
+204: NOT R8, R7
 212: NOT R9, R8
 220: ST b, R9
 228: NOT R10, false

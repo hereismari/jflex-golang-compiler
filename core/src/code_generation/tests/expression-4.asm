@@ -1,15 +1,17 @@
 100: LD SP, #4000
-108: ST a, 0
-116: ST b, 0
-124: ST c, 0
-132: ST d, 0
-140: ST e, 0
-148: LD R0, b
-156: ST a, R0
-164: LD R2, b
-172: LD R3, c
-180: ADD R1, R2, R3
-188: ST a, R1
-196: LD R5, e
-204: ADD R4, R1, R5
-212: ST d, R4
+108: LD R0, 0
+116: ST a, R0
+124: LD R1, 0
+132: ST b, R1
+140: LD R2, 0
+148: ST c, R2
+156: LD R3, 0
+164: ST d, R3
+172: LD R4, 0
+180: ST e, R4
+188: LD R5, b
+196: ST a, R5
+204: ADD R6, R1, R2
+212: ST a, R6
+220: ADD R7, R6, R4
+228: ST d, R7
