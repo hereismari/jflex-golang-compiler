@@ -1,8 +1,9 @@
 100: LD SP, #4000
-108: ST x, 0
-116: ST y, 0
-124: ST z, 0
-132: LD R1, y
-140: LD R2, z
-148: ADD R0, R1, R2
-156: ST x, R0
+108: LD R0, 0
+116: ST x, R0
+124: LD R1, 0
+132: ST y, R1
+140: LD R2, 0
+148: ST z, R2
+156: ADD R3, R1, R2
+164: ST x, R3
