@@ -298,7 +298,7 @@ OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal:lit                 {: RESULT = lit;  :}
                    | TypeName:tn               {: Expression expTn = new Expression(Type.UNKNOWN, tn.toString(), tn.toString()); RESULT = expTn;  :}
                    | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
-												  exp.setValue("(" + e.toString() + ")");
+												  exp.setValue("(" + exp.getValue() + ")");
 												  RESULT = exp; :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}

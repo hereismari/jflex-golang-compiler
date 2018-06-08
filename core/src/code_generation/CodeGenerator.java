@@ -132,7 +132,23 @@ public class CodeGenerator {
         addCode(labels + ": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
     }
     
-    
+	public Expression generateUnaryCode(Object obj, Expression exp, String op) throws SemanticException {
+		if (op.equals("-")) {
+			Expression minusOne = new Expression(exp.getType(), "-1");
+			return generateOpCode(minusOne, obj, exp, "*");
+		} else if (op.equals("!")) {
+			String reg = allocateRegister();
+			exp.setReg(reg);
+
+			String objReg = getRegisterFromObject(obj);
+			labels += 8;
+			addCode(labels + ": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + objReg);
+
+			return exp;
+		}
+		return exp;
+	}
+
     /* 5. Adding Code
 	 * -----------------------------------------------------------------------------------
 	 * */

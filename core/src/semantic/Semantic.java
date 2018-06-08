@@ -204,7 +204,17 @@ public class Semantic {
 
 		validateUnaryOperation(op, expr.getType());
 		String exprValue = op + expr.getValue();
-		Expression resultingExpr = new Expression(expr.getType(), exprValue);
+		String exprName = expr.getName() == null ? null : "Var: " + expr.getName();
+
+		Expression resultingExpr = new Expression(expr.getType(), exprName, exprValue);
+		resultingExpr.setReg(expr.getReg());
+
+		Object obj = expr;
+		if (checkVariableAllScopes(expr.getName())) {
+			obj = getVariable(expr.getName());
+		}
+
+		resultingExpr = codeGenerator.generateUnaryCode(obj, resultingExpr, op);
 		return resultingExpr;
 	}
 
@@ -617,6 +627,7 @@ public class Semantic {
 	 * */
 	private Expression assignTypeIfNeeded(Expression e) throws SemanticException {
 		Expression newExpression = new Expression(e.getType(), e.getName(), e.getValue());
+		newExpression.setReg(e.getReg());
 		
 		if(newExpression.getType() == Type.UNKNOWN) {
 			try {
