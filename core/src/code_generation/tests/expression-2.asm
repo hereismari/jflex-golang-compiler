@@ -5,5 +5,7 @@
 132: ST y, R1
 140: LD R2, 0
 148: ST z, R2
-156: ADD R3, R1, R2
-164: ST x, R3
+
+function main
+600: ADD R3, R1, R2
+608: ST x, R3

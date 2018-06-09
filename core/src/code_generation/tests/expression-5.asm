@@ -9,7 +9,9 @@
 164: ST d, R3
 172: LD R4, 0
 180: ST e, R4
-188: MUL R5, R1, R2
-196: ST a, R5
-204: ADD R6, R5, R3
-212: ST e, R6
+
+function main
+600: MUL R5, R1, R2
+608: ST a, R5
+616: ADD R6, R5, R3
+624: ST e, R6
