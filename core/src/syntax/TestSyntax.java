@@ -2,6 +2,7 @@ package syntax;
 
 import syntax.Parser;
 import lexical.Lexer;
+import semantic.exceptions.SemanticException;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -37,8 +38,6 @@ public class TestSyntax {
 		    Parser p = new Parser(lexer, csf);
 		    System.out.println("Parser runs: ");
 		    p.parse();
-		    // p.debug_parse();
-
 		    System.out.println("Parsing finished!");
 		} catch (Exception e) {
 		    e.printStackTrace();
