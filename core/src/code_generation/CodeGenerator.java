@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import code_generation.models.OpToAssembly;
 
@@ -37,6 +38,7 @@ public class CodeGenerator {
 
     //private Stack<IfScope> ifScopeStack = new Stack<>();
     //private Stack<ElseScope> elseScopeStack = new Stack<>();
+
     
     /* File organization:
 	 * 		1. CodeGenerator Basics
@@ -123,7 +125,7 @@ public class CodeGenerator {
             }
             
             String reg = var.getValue().getReg().toString();
-            addCode(": ST " + var.getName() + ", " + reg);
+            addCode("ST " + var.getName() + ", " + reg);
         }
     }
 
@@ -132,20 +134,43 @@ public class CodeGenerator {
 	 * -----------------------------------------------------------------------------------
 	 * */
     public Expression generateOpCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
-    	// Allocate register to resulting expression
-    	String reg = allocateRegister();
-        exp.setReg(reg);
+        if(OpToAssembly.isRelop(op)) {
+            exp = generateRelopCode(obj1, obj2, exp, op);
+        } else {
+        	// Allocate register to resulting expression
+        	String reg = allocateRegister();
+            exp.setReg(reg);
+        	
+        	String reg1 = getRegisterFromObject(obj1);
+            String reg2 = getRegisterFromObject(obj2);
+            addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        }
         
-        String reg1 = getRegisterFromObject(obj1);
+        return exp;
+    }
+    
+    
+    public Expression generateRelopCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
+    	String reg1 = getRegisterFromObject(obj1);
         String reg2 = getRegisterFromObject(obj2);
-        addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
         
+        OpToAssembly operator = OpToAssembly.getOperator(op);
+
+        addCode("LD R1, " + reg1);
+        addCode("LD R2, " + reg2);
+        addCode("SUB R1, R1, R2");
+        addCode(operator.getRelOperator() + " R1, ", 24);
+        addCode("LD R1, " + operator.getElseReturn());
+        addCode("BR ", 16);
+        addCode("LD R1, " + operator.getIfTrueReturn());
+    	
+        exp.setReg("R1");
         return exp;
     }
     
     public void generateOpCode(Object obj, Expression exp, String op) throws SemanticException {
         String reg = getRegisterFromObject(obj);
-        addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
+        addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
     }
     
 	public Expression generateUnaryCode(Object obj, Expression exp, String op) throws SemanticException {
@@ -157,7 +182,7 @@ public class CodeGenerator {
 			exp.setReg(reg);
 
 			String objReg = getRegisterFromObject(obj);
-			addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + objReg);
+			addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + objReg);
 
 			return exp;
 		}
@@ -176,24 +201,23 @@ public class CodeGenerator {
     	if (inFunctionScope) {
     		String functionCode = codeFunctions.get(codeFunctions.size()-1);
     		labelsFunction += 8;
-    		functionCode += labelsFunction + assemblyString;
+    		functionCode += labelsFunction + ": " + assemblyString;
     		codeFunctions.set(codeFunctions.size()-1, functionCode);
     	} else {
     		labels += 8;
-    		assemblyCode += labels + assemblyString;
+    		assemblyCode += labels + ": " + assemblyString;
     	}
     }
-    
     
     private void addCode(String assemblyString, int branchToAddLabels) {
      	if (inFunctionScope) {
      		String functionCode = codeFunctions.get(codeFunctions.size()-1);
      		labelsFunction += 8;
-     		functionCode += labelsFunction + assemblyString + (labelsFunction + branchToAddLabels) + "\n";
+     		functionCode += labelsFunction + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
      		codeFunctions.set(codeFunctions.size()-1, functionCode);
      	} else {
      		labels += 8;
-     		assemblyCode += labels + assemblyString + (labelsFunction + branchToAddLabels) + "\n";
+     		assemblyCode += labels + ": " + assemblyString + "#" + (labels + branchToAddLabels) + "\n";
      	}
 	}
     
@@ -207,12 +231,12 @@ public class CodeGenerator {
         	value = "#" + value;
         }
         
-        addCode(": LD " + e.getReg() +", " + value);
+        addCode("LD " + e.getReg() +", " + value);
     }
     
     public void addCodeLoading(Variable v) throws SemanticException {
     	v.getValue().setReg(allocateRegister());
-        addCode(": LD " + v.getValue().getReg() +", "+ v.getName());
+        addCode("LD " + v.getValue().getReg() +", "+ v.getName());
     }
     
     /* 5. Function
@@ -226,9 +250,9 @@ public class CodeGenerator {
     
     public void addReturnCode(Expression e) {
     	if (e.getValue() != null) {
-    		addCode(": LD R0, " + e.getValue());
+    		addCode("LD R0, " + e.getValue());
     	}
-    	addCode(": BR *0(SP)");
+    	addCode("BR *0(SP)");
     }
     
     public void endFunction() {
@@ -237,10 +261,10 @@ public class CodeGenerator {
     }
     
     public void addFunctionCall(Function f) {
-    	addCode(": ADD SP, SP, #" + f.getName() + "size");
-    	addCode(": ST *SP, #", 16);
-    	addCode(": BR #" + f.getLabels());
-    	addCode(": SUB SP, SP, #" + f.getName() + "size");
+    	addCode("ADD SP, SP, #" + f.getName() + "size");
+    	addCode("ST *SP, ", 16);
+    	addCode("BR #" + f.getLabels());
+    	addCode("SUB SP, SP, #" + f.getName() + "size");
     }
 
 	private void addFunctionsToCode() {
@@ -249,4 +273,5 @@ public class CodeGenerator {
     		assemblyCode += functionCode;
     	}
     }
+    
 }
