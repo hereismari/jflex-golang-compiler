@@ -424,7 +424,8 @@ public class Semantic {
 	public void FunctionInitializeParameters(Type type) throws SemanticException {
 		System.out.println("Initializing parameters with type: " + type);
 		Function f = (Function) scopeStack.peek();
-		f.initializeParameters(type);
+		/* Code generation */
+		f.initializeParameters(type, codeGenerator);
 	}
 	
 	public void FunctionCheckParameters(Expression expr) throws SemanticException {
@@ -455,9 +456,6 @@ public class Semantic {
 		}
 		
 		expBuffer.clear();
-		
-		/* Code generation */
-		codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 
@@ -652,7 +650,7 @@ public class Semantic {
 		return newExpression;
 	}
 	
-	/* 10. Code Generarion Related 
+	/* 10. Code Generation Related 
 	 * -----------------------------------------------------------------------------------
 	 * */
 	public void createIfCode() {
@@ -665,6 +663,12 @@ public class Semantic {
 	
 	public void createElseCode() {
 		codeGenerator.createElse();
+	}
+	
+	public void functionCallCode(Expression expr) {
+		System.out.println("Call " + expr);
+		if (functions.containsKey(expr.getName()))
+			codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 }

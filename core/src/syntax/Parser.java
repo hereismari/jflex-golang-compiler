@@ -2667,7 +2667,7 @@ class CUP$Parser$actions {
 		int opleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int opright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		Object op = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = op;   
+		 RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("PrimaryExpr",74, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4441,10 +4441,7 @@ class CUP$Parser$actions {
 		int eleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).left;
 		int eright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
-		int ifsauxleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
-		int ifsauxright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
-		Object ifsaux = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 Semantic.getInstance().exitCurrentScopeEndIf(); 
+
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("IfStmt2",178, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

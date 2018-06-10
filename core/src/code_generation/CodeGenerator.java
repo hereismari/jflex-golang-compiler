@@ -209,7 +209,7 @@ public class CodeGenerator {
            assemblyString += "\n";
         }
 
-    	if (!ifElseStack.empty()) {
+    	if (!ifElseStack.empty() && ifElseStack.peek().initialized()) {
     		IfElseScope ifElse = ifElseStack.peek();
     		Integer label = updateCurrentLabel(8);
     		String code = ifElse.getCode();
@@ -227,7 +227,7 @@ public class CodeGenerator {
     }
     
     private void addCode(String assemblyString, int branchToAddLabels) {
-    	if (!ifElseStack.empty()) {
+    	if (!ifElseStack.empty() && ifElseStack.peek().initialized()) {
     		IfElseScope ifElse = ifElseStack.peek();
     		Integer label = updateCurrentLabel(8);
     		String code = ifElse.getCode();
@@ -304,18 +304,21 @@ public class CodeGenerator {
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void createIf() {
+    	System.out.println("-------------------Create if");
     	ifnumber++;
     	IfElseScope ifelse = new IfElseScope("if", ifnumber);
     	ifElseStack.push(ifelse);
     }
     
     public void createIfElse() {
+    	System.out.println("-------------------Create if else");
     	updateLastBranchLabel();
     	IfElseScope ifelse = new IfElseScope("ifelse", ifnumber);
     	ifElseStack.push(ifelse);
     }
     
     public void createElse() {
+    	System.out.println("-------------------Create else");
     	updateLastBranchLabel();
     	IfElseScope ifelse = new IfElseScope("else", ifnumber, getCurrentLabel());
     	ifElseStack.push(ifelse);
@@ -337,13 +340,12 @@ public class CodeGenerator {
     
     private void unstackIf() {
     	String auxCode = "";
-
     	for(int i = 0; i < ifElseStack.size(); i++) {
     		if(ifElseStack.get(i).getCodeGenerationLevel() == ifnumber) {
     			IfElseScope currIf = ifElseStack.get(i);
     			
     			boolean lastIfElse = i == (ifElseStack.size()-1);
-    			currIf.setEndLine(labels + 8);
+    			currIf.setEndLine(getCurrentLabel() + 8);
     			
     			if(!lastIfElse) {
     				currIf.setFailLine(ifElseStack.get(i+1).getLabel() + 8);
@@ -359,7 +361,9 @@ public class CodeGenerator {
     	
     	ifnumber--;
     	
-    	if(inFunctionScope) {
+    	if(!ifElseStack.empty()) {
+    		ifElseStack.peek().addToCode(auxCode);
+    	} else if(inFunctionScope) {
     		String functionCode = codeFunctions.get(codeFunctions.size()-1);
     		functionCode += auxCode;
     		codeFunctions.set(codeFunctions.size()-1, functionCode);

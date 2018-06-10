@@ -26,9 +26,8 @@ public class IfElseScope {
 	
 	public IfElseScope(String type, int codeGenerationLevel, int label) {
 		this.type = type;
-        this.setRegister(register);
-        
         this.setLabel(label);
+        this.auxLabel = label;
         this.code = "";
         this.codeGenerationLevel = codeGenerationLevel;
     }
@@ -43,13 +42,13 @@ public class IfElseScope {
 	}
 	
 	public boolean initialized() {
-		return register != null && label != null;
+		return label != null;
 	}
 	
 	public String generateCode(boolean lastIfElse) {
 		String generatedCode = "";
         if(lastIfElse) {
-			if(initialized()) {
+			if(register != null) {
 				generatedCode += addCode("SUB " + register + ", " + reg1 + ", " + reg2);
 				generatedCode += addCode(operator.getRelOperator() + " " + register + ", #" + endLine);
 		        generatedCode += code;
@@ -72,6 +71,10 @@ public class IfElseScope {
 
     public String getCode() {
        return code;
+    }
+    
+    public void addToCode(String code) {
+        this.code += code;
     }
     
     public void setCode(String code) {

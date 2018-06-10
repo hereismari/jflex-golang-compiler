@@ -10,7 +10,7 @@ function block
 1016: AND R4, #true, #false
 1024: LD R0, R4
 1032: BR *0(SP)
-1040: BR #140
+1040: BR #1064
 1048: LD R0, #false
 1056: BR *0(SP)
 

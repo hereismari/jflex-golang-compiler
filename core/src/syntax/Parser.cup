@@ -309,7 +309,7 @@ Literal        ::= BasicLit:blit               {: RESULT = blit; :}
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
                    | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
-PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
@@ -479,7 +479,7 @@ DeferStmt ::= DEFER Expression;
 IfStmt         ::= IF {: Semantic.getInstance().createIfCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 
-IfStmt2         ::= IF {: Semantic.getInstance().createIfElseCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux:ifsaux {: Semantic.getInstance().exitCurrentScopeEndIf(); :} ;
+IfStmt2         ::= IF {: Semantic.getInstance().createIfElseCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
 
 IfStmtAux      ::=   ELSE IfStmt2
                    | ELSE {: Semantic.getInstance().createElseCode(); Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScopeEndIf(); :}
