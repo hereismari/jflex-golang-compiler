@@ -9,9 +9,9 @@ function block
 1008: LD R2, R4
 1016: SUB R1, R1, R2
 1024: BGZ R1, #1048
-1032: LD R1, 0
+1032: LD R1, #false
 1040: BR #1056
-1048: LD R1, 1
+1048: LD R1, #true
 1056: LD R0, true
 1064: BR *0(SP)
 1072: LD R0, false

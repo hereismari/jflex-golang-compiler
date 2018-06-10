@@ -148,7 +148,11 @@ public class CodeGenerator {
         
         return exp;
     }
-    
+
+    public void generateOpCode(Object obj, Expression exp, String op) throws SemanticException {
+        String reg = getRegisterFromObject(obj);
+        addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
+    }
     
     public Expression generateRelopCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
     	String reg1 = getRegisterFromObject(obj1);
@@ -160,17 +164,12 @@ public class CodeGenerator {
         addCode("LD R2, " + reg2);
         addCode("SUB R1, R1, R2");
         addCode(operator.getRelOperator() + " R1, ", 24);
-        addCode("LD R1, " + operator.getElseReturn());
+        addCode("LD R1, #" + operator.getElseReturn());
         addCode("BR ", 16);
-        addCode("LD R1, " + operator.getIfTrueReturn());
+        addCode("LD R1, #" + operator.getIfTrueReturn());
     	
         exp.setReg("R1");
         return exp;
-    }
-    
-    public void generateOpCode(Object obj, Expression exp, String op) throws SemanticException {
-        String reg = getRegisterFromObject(obj);
-        addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
     }
     
 	public Expression generateUnaryCode(Object obj, Expression exp, String op) throws SemanticException {
@@ -239,7 +238,7 @@ public class CodeGenerator {
         addCode("LD " + v.getValue().getReg() +", "+ v.getName());
     }
     
-    /* 5. Function
+    /* 6. Function
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void createFunction(Function f) {

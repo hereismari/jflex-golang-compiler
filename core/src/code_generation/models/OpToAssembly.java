@@ -12,12 +12,12 @@ public enum OpToAssembly {
 	XOR("^", "binOp"),
 	NOT("!", "binOp"),
 	
-	EQ("==", "relOp", "1", "0", "BEQZ"),
-    NE("!=", "relOp", "0", "1", "BEQZ"),
-	LT("<",  "relOp", "1", "0", "BLTZ"),
-    LTEQ("<=", "relOp", "1", "0", "BLEQZ"),
-	GT(">", "relOp", "1", "0", "BGZ"),
-	GTEQ(">=", "relOp", "1", "0", "BGEZ"); 
+	EQ("==", "relOp", "true", "false", "BEQZ"),
+    NE("!=", "relOp", "false", "true", "BEQZ"),
+	LT("<",  "relOp", "true", "false", "BLTZ"),
+    LTEQ("<=", "relOp", "true", "false", "BLEQZ"),
+	GT(">", "relOp", "true", "false", "BGZ"),
+	GTEQ(">=", "relOp", "true", "false", "BGEZ"); 
 
 	private final String name;
 	private final String type;
