@@ -213,11 +213,11 @@ public class CodeGenerator {
      	if (inFunctionScope) {
      		String functionCode = codeFunctions.get(codeFunctions.size()-1);
      		labelsFunction += 8;
-     		functionCode += labelsFunction + ": " + assemblyString + (labelsFunction + branchToAddLabels) + "\n";
+     		functionCode += labelsFunction + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
      		codeFunctions.set(codeFunctions.size()-1, functionCode);
      	} else {
      		labels += 8;
-     		assemblyCode += labels + ": " + assemblyString + (labels + branchToAddLabels) + "\n";
+     		assemblyCode += labels + ": " + assemblyString + "#" + (labels + branchToAddLabels) + "\n";
      	}
 	}
     
@@ -262,7 +262,7 @@ public class CodeGenerator {
     
     public void addFunctionCall(Function f) {
     	addCode("ADD SP, SP, #" + f.getName() + "size");
-    	addCode("ST *SP, #", 16);
+    	addCode("ST *SP, ", 16);
     	addCode("BR #" + f.getLabels());
     	addCode("SUB SP, SP, #" + f.getName() + "size");
     }
