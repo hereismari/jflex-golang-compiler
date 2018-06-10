@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import code_generation.models.OpToAssembly;
 
@@ -37,6 +38,7 @@ public class CodeGenerator {
 
     //private Stack<IfScope> ifScopeStack = new Stack<>();
     //private Stack<ElseScope> elseScopeStack = new Stack<>();
+
     
     /* File organization:
 	 * 		1. CodeGenerator Basics
@@ -136,9 +138,65 @@ public class CodeGenerator {
     	String reg = allocateRegister();
         exp.setReg(reg);
         
-        String reg1 = getRegisterFromObject(obj1);
-        String reg2 = getRegisterFromObject(obj2);
-        addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        if (op == "==" || op == "!=" ||op == ">=" ||op == ">" ||op == "<=" ||op == "<") {
+        	String relOperator = "";
+        	String ifReturn = "";
+        	String elseReturn = "";
+        	
+        	switch(op) {
+        	case "==":
+        		relOperator = "BEQZ";
+        		ifReturn = "1";
+        		elseReturn = "0";
+        	case "!=":
+        		relOperator = "BEQZ";
+        		ifReturn = "0";
+        		elseReturn = "1";
+        	case ">=":
+        		relOperator = "BGEZ";
+        		ifReturn = "0";
+        		elseReturn = "1";
+        	case ">":
+        		relOperator = "BGTZ";
+        		ifReturn = "1";
+        		elseReturn = "0";
+        	case "<=":
+        		relOperator = "BLEZ"; 
+        		ifReturn = "1";
+        		elseReturn = "0";
+        	case "<":
+        		relOperator = "BLTZ";
+        		ifReturn = "1";
+        		elseReturn = "0";
+        	}
+        	
+        	
+        	String reg1 = getRegisterFromObject(obj1);
+            String reg2 = getRegisterFromObject(obj2);
+
+            labels += 8;
+            addCode(labels + ": LD R1, " + reg1);
+            labels += 8;
+            addCode(labels + ": LD R2, " + reg2);
+            labels += 8;
+            addCode(labels + ": SUB R1, R1, R2");
+            labels += 8;
+            int aux = labels+16;
+            addCode(labels + ": " + relOperator + " R1, " + aux);
+            labels += 8;
+            addCode(labels + ": LD R1, " + elseReturn);
+            labels += 8;
+            aux = labels+16;
+            addCode(labels + ": BR "+ aux);
+            labels += 8;
+            addCode(labels + ": LD R1, " + ifReturn);
+        	
+        }else {
+        	String reg1 = getRegisterFromObject(obj1);
+            String reg2 = getRegisterFromObject(obj2);
+            labels += 8;
+            addCode(labels + ": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        }
         
         return exp;
     }
@@ -183,7 +241,6 @@ public class CodeGenerator {
     		assemblyCode += labels + assemblyString;
     	}
     }
-    
     
     private void addCode(String assemblyString, int branchToAddLabels) {
      	if (inFunctionScope) {
@@ -249,4 +306,5 @@ public class CodeGenerator {
     		assemblyCode += functionCode;
     	}
     }
+    
 }

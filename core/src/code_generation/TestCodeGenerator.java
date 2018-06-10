@@ -36,6 +36,7 @@ public class TestCodeGenerator {
 	private static void parse(String sourceCode, ComplexSymbolFactory csf) throws Exception {
 		
 		Semantic.getInstance().clear();
+		Semantic.getInstance().getCodeGenerator().init();
 		
 		boolean exception = false;
 		

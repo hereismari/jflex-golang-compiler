@@ -10,7 +10,13 @@ public enum OpToAssembly {
 	AND("&&"),
 	OR("||"),
 	XOR("^"),
-	NOT("!");
+	NOT("!"),
+	EQ("=="),
+    NE("!="),
+	LT("<"),
+    LTEQ("<="),
+	GT(">"),
+	GTEQ(">="); 
 
 	private final String name;
 
