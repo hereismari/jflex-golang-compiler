@@ -561,7 +561,7 @@ AuxResult        ::= Result:r
 
 Result         ::= HASH PAR_L AuxResult2 PAR_R // HOTFIX HASH
                   | TypeLit 
-                  | TypeName:tn   {:   RESULT = type; :};   
+                  | TypeName:tn   {:    :};   
 AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
 AuxResult3     ::= IdentifierStar3 | DOT Identifier;
 

@@ -67,6 +67,9 @@ func main() {
     case x < y: f1#();
     case x < z: f2#();
     case x == 4: f3#();
+    case x && y: {
+      x = 2;
+    };
   };
   
   // TypeSwitchGuard

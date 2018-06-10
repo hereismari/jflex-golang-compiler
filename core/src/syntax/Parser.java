@@ -5203,7 +5203,8 @@ class CUP$Parser$actions {
 		int tnleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int tnright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		Object tn = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		      CUP$Parser$result = parser.getSymbolFactory().newSymbol("Result",26, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
+		    
+              CUP$Parser$result = parser.getSymbolFactory().newSymbol("Result",26, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
 
