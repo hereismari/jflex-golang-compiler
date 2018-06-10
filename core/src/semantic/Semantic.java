@@ -209,12 +209,9 @@ public class Semantic {
 		Expression resultingExpr = new Expression(expr.getType(), exprName, exprValue);
 		resultingExpr.setReg(expr.getReg());
 
-		Object obj = expr;
-		if (checkVariableAllScopes(expr.getName())) {
-			obj = getVariable(expr.getName());
-		}
-
+		Object obj = expressionToObject(expr);
 		resultingExpr = codeGenerator.generateUnaryCode(obj, resultingExpr, op);
+
 		return resultingExpr;
 	}
 
@@ -248,19 +245,24 @@ public class Semantic {
 
 		/* Code generation */
 		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
+		Object ob1 = expressionToObject(e1);
+		Object ob2 = expressionToObject(e2);
 		
-		Object ob1 = e1;
-		Object ob2 = e2;
-		if(checkVariableAllScopes(e1.getName())) {
-			ob1 = getVariable(e1.getName());
-		}
-		if(checkVariableAllScopes(e2.getName())) {
-			ob2 = getVariable(e2.getName());
-		}
-
 		resultingExpr = codeGenerator.generateOpCode(ob1, ob2, resultingExpr, op);
 
 		return resultingExpr;
+	}
+	
+	private Object expressionToObject(Expression e) throws SemanticException {
+		Object ob = e;
+		if(checkVariableAllScopes(e.getName())) {
+			ob = getVariable(e.getName());
+		}
+		else if(functions.containsKey(e.getName())) {
+			ob = functions.get(e.getName());
+		}
+		
+		return ob;
 	}
 
 	private String formatExpressionName(Expression e1, Expression e2) {
@@ -407,7 +409,7 @@ public class Semantic {
 		clearBuffers();
 		
 		/* Code generation */
-		codeGenerator.addReturnCode();
+		codeGenerator.addReturnCode(e);
 		
 	}
 	
@@ -533,6 +535,12 @@ public class Semantic {
 		var.setType(t);
 		var.setValue(exp);
 		
+		/* Code generation */
+		Object ob = expressionToObject(exp);
+		if (ob instanceof Function) {
+			var.getValue().setReg("R0");
+		}
+		
 		return var;
 	}
 
@@ -626,7 +634,6 @@ public class Semantic {
 		if(newExpression.getType() == Type.UNKNOWN) {
 			try {
 				Function f = functions.get(e.getName());
-				System.out.println(f.getReturnType());
 				newExpression.setType(f.getReturnType());
 				newExpression.setValue(f.getReturnedExpression().getValue());
 			} catch(NullPointerException npe) {
