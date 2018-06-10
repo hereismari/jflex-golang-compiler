@@ -61,6 +61,7 @@ public class Semantic {
 	 * 		7. If Else
 	 *      8. Declaring Variables
 	 *      9. TypeCoersion
+	 *      10. Code Generarion Related
 	 * -----------------------------------------------------------------------------------
 	 * */
 	
@@ -477,6 +478,12 @@ public class Semantic {
 		}
 	}
 	
+	/* Code generation */
+	public void exitCurrentScope(String flag) throws Exception {
+		scopeStack.pop();
+		codeGenerator.endIf(flag);
+	}
+	
 	public ScopedEntity getCurrentScope() {
 		return scopeStack.peek();
 	}
@@ -643,6 +650,14 @@ public class Semantic {
 		}
 		
 		return newExpression;
+	}
+	
+	/* 10. Code Generarion Related 
+	 * -----------------------------------------------------------------------------------
+	 * */
+	public void createIfCode() {
+		System.out.println("AQUIIIIIIIIIIIIIIIIII");
+		codeGenerator.createIf();
 	}
 
 }

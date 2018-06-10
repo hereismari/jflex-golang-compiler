@@ -5,7 +5,7 @@ var b int = 2;
 
 func block() bool{
     if a > b {
-        return true;
+        return true && false;
     } else {
         return false;
     };

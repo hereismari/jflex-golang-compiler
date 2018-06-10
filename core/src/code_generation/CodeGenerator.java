@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import code_generation.models.IfElseScope;
 import code_generation.models.OpToAssembly;
 
 import semantic.Semantic;
 import semantic.exceptions.SemanticException;
 import semantic.models.Expression;
 import semantic.models.Function;
+import semantic.models.IfElse;
 import semantic.models.Variable;
 
 public class CodeGenerator {
@@ -36,10 +38,10 @@ public class CodeGenerator {
     /* Used to allocate registers. */
     private static int rnumber;
 
-    //private Stack<IfScope> ifScopeStack = new Stack<>();
-    //private Stack<ElseScope> elseScopeStack = new Stack<>();
+    /* If else stack. Used to properly define branch statement. */
+    private Stack<IfElseScope> ifElseStack = new Stack<>();
+    private static int ifnumber;
 
-    
     /* File organization:
 	 * 		1. CodeGenerator Basics
 	 * 		2. Registers
@@ -47,6 +49,7 @@ public class CodeGenerator {
 	 *  	4. Operations
 	 *      5. Adding Code
 	 *      6. Function
+	 *      7. If Else
 	 * -----------------------------------------------------------------------------------
 	 * */
 
@@ -63,8 +66,8 @@ public class CodeGenerator {
     	assemblyCode = "100: LD SP, #4000\n";
         
     	// Register 0: store a function return
-    	// Register 1 and 2: if else branches
-    	rnumber = 2;
+    	rnumber = 0;
+    	ifnumber = -1;
         
         labelsFunction = 992;
     	inFunctionScope = false;
@@ -160,15 +163,23 @@ public class CodeGenerator {
         
         OpToAssembly operator = OpToAssembly.getOperator(op);
 
-        addCode("LD R1, " + reg1);
-        addCode("LD R2, " + reg2);
-        addCode("SUB R1, R1, R2");
-        addCode(operator.getRelOperator() + " R1, ", 24);
-        addCode("LD R1, #" + operator.getElseReturn());
-        addCode("BR ", 16);
-        addCode("LD R1, #" + operator.getIfTrueReturn());
+        //addCode("LD R1, " + reg1);
+        //addCode("LD R2, " + reg2);
+        
+        String subReg = allocateRegister();
+        
+        if(!ifElseStack.empty() && !ifElseStack.peek().initialized()) {
+            System.out.println(ifElseStack.peek().initialized());
+        	ifElseStack.peek().initialize(labels, subReg);
+        } else {
+	        addCode("SUB " + subReg + ", " + reg1 + ", " + reg2);
+	        addCode(operator.getRelOperator() + " " + subReg + ", ", 24);
+	        addCode("LD " + subReg + ", #" + operator.getElseReturn());
+	        addCode("BR ", 16);
+	        addCode("LD " + subReg + ", #" + operator.getIfTrueReturn());
+        }
     	
-        exp.setReg("R1");
+        exp.setReg(subReg);
         return exp;
     }
     
@@ -195,9 +206,15 @@ public class CodeGenerator {
     	if (!assemblyString.substring(assemblyString.length() - 1).equals("\n")) {
            assemblyString += "\n";
         }
-    	
-    	// TODO: Missing if/else checking
-    	if (inFunctionScope) {
+
+    	if (!ifElseStack.empty()) {
+    		System.out.println("IFELSE");
+    		IfElseScope ifElse = ifElseStack.pop();
+    		labels += 8;
+    		String code = ifElse.getCode();
+    		code += labels + ": " + assemblyString;
+    		ifElse.setCode(code);    		
+    	} else if (inFunctionScope) {
     		String functionCode = codeFunctions.get(codeFunctions.size()-1);
     		labelsFunction += 8;
     		functionCode += labelsFunction + ": " + assemblyString;
@@ -209,7 +226,14 @@ public class CodeGenerator {
     }
     
     private void addCode(String assemblyString, int branchToAddLabels) {
-     	if (inFunctionScope) {
+    	if (!ifElseStack.empty()) {
+    		System.out.println("IFELSE");
+    		IfElseScope ifElse = ifElseStack.pop();
+    		labels += 8;
+    		String code = ifElse.getCode();
+    		code += labels + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
+    		ifElse.setCode(code);    		
+    	} else if (inFunctionScope) {
      		String functionCode = codeFunctions.get(codeFunctions.size()-1);
      		labelsFunction += 8;
      		functionCode += labelsFunction + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
@@ -248,8 +272,11 @@ public class CodeGenerator {
     }
     
     public void addReturnCode(Expression e) {
-    	if (e.getValue() != null) {
-    		addCode("LD R0, " + e.getValue());
+    	if(e.getReg() != null) {
+    		addCode("LD R0, " + e.getReg());
+    	}
+    	else if (e.getValue() != null) {
+    		addCode("LD R0, #" + e.getValue());
     	}
     	addCode("BR *0(SP)");
     }
@@ -272,5 +299,33 @@ public class CodeGenerator {
     		assemblyCode += functionCode;
     	}
     }
+	
+	/* 7. If Else
+	 * -----------------------------------------------------------------------------------
+	 * */
+    public void createIf() {
+    	ifnumber++;
+    	IfElseScope ifelse = new IfElseScope(ifnumber);
+    	ifElseStack.add(ifelse);
+    }
     
+    public void endIf(String flag) throws Exception {
+    	if(flag.equals("nothing")) {
+    		unstackIf();
+    	} else if(flag.equals("elseif")) {
+    		// update peek
+		} else if(flag.equals("else")) {
+			// maybe peek
+			// maybe not needed
+		} else {
+			throw new Exception("Invalid flag: " + flag);
+		}
+    }
+    
+    private void unstackIf() {
+    	while(!ifElseStack.empty() && ifElseStack.peek().getCodeGenerationLevel() == ifnumber) {
+    		// do something
+    	}
+    	ifnumber--;
+    }
 }

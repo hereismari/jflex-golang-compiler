@@ -476,12 +476,12 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block {: Semantic.getInstance().exitCurrentScope(); :} IfStmtAux;
+IfStmt         ::= IF {: Semantic.getInstance().createIfCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux:ifsaux {: Semantic.getInstance().exitCurrentScope(ifsaux.toString()); :} ;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 
-IfStmtAux      ::=   ELSE IfStmt
-                   | ELSE {: Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScope(); :}
-				   | ;
+IfStmtAux      ::=   ELSE {: RESULT = "elseif"; :} IfStmt
+                   | ELSE {: Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScope("nothing"); RESULT = "else";  :}
+				   | {: RESULT = "nothing"; :};
 
 /* ------------------ SelectStmt ------------------- */
 SelectStmt  ::= SELECT CURLY_L CommClause CURLY_R;

@@ -1,11 +1,11 @@
 100: LD SP, #4000
-108: LD R4, #0
-116: ST y, R4
+108: LD R2, #0
+116: ST y, R2
 
 function x
-1000: LD R3, #1
-1008: ST y, R3
-1016: LD R0, y
+1000: LD R1, #1
+1008: ST y, R1
+1016: LD R0, #y
 1024: BR *0(SP)
 
 function main
