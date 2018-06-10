@@ -12,32 +12,26 @@ public enum OpToAssembly {
 	XOR("^", "binOp"),
 	NOT("!", "binOp"),
 	
-	EQ("==", "relOp", "true", "false", "BEQZ"),
-    NE("!=", "relOp", "false", "true", "BEQZ"),
-	LT("<",  "relOp", "true", "false", "BLTZ"),
-    LTEQ("<=", "relOp", "true", "false", "BLEQZ"),
-	GT(">", "relOp", "true", "false", "BGZ"),
-	GTEQ(">=", "relOp", "true", "false", "BGEZ"); 
+	EQ("==", "relOp", "BNEZ"),
+    NE("!=", "relOp", "BEQZ"),
+	LT("<",  "relOp", "BGEZ"),
+    LTEQ("<=", "relOp", "BGZ"),
+	GT(">", "relOp", "BLEZ"),
+	GTEQ(">=", "relOp", "BLZ"); 
 
 	private final String name;
 	private final String type;
-	private final String ifTrueReturn;
-	private final String elseReturn;
 	private final String relOperator;
 
 	private OpToAssembly(String name, String type) {
 		this.name = name;
 		this.type = type;
-		this.ifTrueReturn = null;
-		this.elseReturn = null;
 		this.relOperator = null;
 	}
 	
-	private OpToAssembly(String name, String type, String ifTrueReturn, String elseReturn, String relOperator) {
+	private OpToAssembly(String name, String type, String relOperator) {
 		this.name = name;
 		this.type = type;
-		this.ifTrueReturn = ifTrueReturn;
-		this.elseReturn = elseReturn;
 		this.relOperator = relOperator;
 	}
 
@@ -64,14 +58,6 @@ public enum OpToAssembly {
 
 	public String getType() {
 		return type;
-	}
-
-	public String getIfTrueReturn() {
-		return ifTrueReturn;
-	}
-
-	public String getElseReturn() {
-		return elseReturn;
 	}
 
 	public String getRelOperator() {

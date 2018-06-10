@@ -15,16 +15,15 @@ import semantic.Semantic;
 import semantic.exceptions.SemanticException;
 import semantic.models.Expression;
 import semantic.models.Function;
-import semantic.models.IfElse;
 import semantic.models.Variable;
 
 public class CodeGenerator {
 
 	/* Memory indicator. */
-    private int labels;
+    private Integer labels;
     
     /* Memory indicator for functions. */
-    private int labelsFunction;
+    private Integer labelsFunction;
     private List<String> codeFunctions;
     // Hack to know if code is inside function or not
     private boolean inFunctionScope;
@@ -162,21 +161,24 @@ public class CodeGenerator {
         String reg2 = getRegisterFromObject(obj2);
         
         OpToAssembly operator = OpToAssembly.getOperator(op);
-
-        //addCode("LD R1, " + reg1);
-        //addCode("LD R2, " + reg2);
-        
         String subReg = allocateRegister();
         
         if(!ifElseStack.empty() && !ifElseStack.peek().initialized()) {
-            System.out.println(ifElseStack.peek().initialized());
-        	ifElseStack.peek().initialize(labels, subReg);
+        	ifElseStack.peek().initialize(getCurrentLabel(), subReg, reg1, reg2, operator);
+        	
+        	// Every if else will have 2 operations in the beginning
+        	if(inFunctionScope) {
+    			labelsFunction += 16;
+    		} else {
+    			labels += 16;
+    		}
+        	
         } else {
 	        addCode("SUB " + subReg + ", " + reg1 + ", " + reg2);
 	        addCode(operator.getRelOperator() + " " + subReg + ", ", 24);
-	        addCode("LD " + subReg + ", #" + operator.getElseReturn());
+	        addCode("LD " + subReg + ", #true");
 	        addCode("BR ", 16);
-	        addCode("LD " + subReg + ", #" + operator.getIfTrueReturn());
+	        addCode("LD " + subReg + ", #false");
         }
     	
         exp.setReg(subReg);
@@ -208,11 +210,10 @@ public class CodeGenerator {
         }
 
     	if (!ifElseStack.empty()) {
-    		System.out.println("IFELSE");
-    		IfElseScope ifElse = ifElseStack.pop();
-    		labels += 8;
+    		IfElseScope ifElse = ifElseStack.peek();
+    		Integer label = updateCurrentLabel(8);
     		String code = ifElse.getCode();
-    		code += labels + ": " + assemblyString;
+    		code += label + ": " + assemblyString;
     		ifElse.setCode(code);    		
     	} else if (inFunctionScope) {
     		String functionCode = codeFunctions.get(codeFunctions.size()-1);
@@ -227,11 +228,10 @@ public class CodeGenerator {
     
     private void addCode(String assemblyString, int branchToAddLabels) {
     	if (!ifElseStack.empty()) {
-    		System.out.println("IFELSE");
-    		IfElseScope ifElse = ifElseStack.pop();
-    		labels += 8;
+    		IfElseScope ifElse = ifElseStack.peek();
+    		Integer label = updateCurrentLabel(8);
     		String code = ifElse.getCode();
-    		code += labels + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
+    		code += label + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
     		ifElse.setCode(code);    		
     	} else if (inFunctionScope) {
      		String functionCode = codeFunctions.get(codeFunctions.size()-1);
@@ -305,27 +305,84 @@ public class CodeGenerator {
 	 * */
     public void createIf() {
     	ifnumber++;
-    	IfElseScope ifelse = new IfElseScope(ifnumber);
-    	ifElseStack.add(ifelse);
+    	IfElseScope ifelse = new IfElseScope("if", ifnumber);
+    	ifElseStack.push(ifelse);
     }
     
-    public void endIf(String flag) throws Exception {
-    	if(flag.equals("nothing")) {
-    		unstackIf();
-    	} else if(flag.equals("elseif")) {
-    		// update peek
-		} else if(flag.equals("else")) {
-			// maybe peek
-			// maybe not needed
+    public void createIfElse() {
+    	updateLastBranchLabel();
+    	IfElseScope ifelse = new IfElseScope("ifelse", ifnumber);
+    	ifElseStack.push(ifelse);
+    }
+    
+    public void createElse() {
+    	updateLastBranchLabel();
+    	IfElseScope ifelse = new IfElseScope("else", ifnumber, getCurrentLabel());
+    	ifElseStack.push(ifelse);
+    }
+    
+    private void updateLastBranchLabel() {
+    	if(inFunctionScope) {
+			labelsFunction += 8;
+	    	ifElseStack.peek().setLastBranchLabel(labelsFunction);
 		} else {
-			throw new Exception("Invalid flag: " + flag);
+			labels += 8;
+	    	ifElseStack.peek().setLastBranchLabel(labels);
 		}
     }
     
+    public void endIf() {
+    	unstackIf();
+    }
+    
     private void unstackIf() {
-    	while(!ifElseStack.empty() && ifElseStack.peek().getCodeGenerationLevel() == ifnumber) {
-    		// do something
+    	String auxCode = "";
+
+    	for(int i = 0; i < ifElseStack.size(); i++) {
+    		if(ifElseStack.get(i).getCodeGenerationLevel() == ifnumber) {
+    			IfElseScope currIf = ifElseStack.get(i);
+    			
+    			boolean lastIfElse = i == (ifElseStack.size()-1);
+    			currIf.setEndLine(labels + 8);
+    			
+    			if(!lastIfElse) {
+    				currIf.setFailLine(ifElseStack.get(i+1).getLabel() + 8);
+    			}
+    			
+    			auxCode += ifElseStack.get(i).generateCode(lastIfElse);
+    		}
     	}
+    	
+    	while(!ifElseStack.empty() && ifElseStack.peek().getCodeGenerationLevel() == ifnumber) {
+    		ifElseStack.pop();
+    	}
+    	
     	ifnumber--;
+    	
+    	if(inFunctionScope) {
+    		String functionCode = codeFunctions.get(codeFunctions.size()-1);
+    		functionCode += auxCode;
+    		codeFunctions.set(codeFunctions.size()-1, functionCode);
+    	} else {
+        	assemblyCode += auxCode;	
+    	}
+    }
+    
+    private int getCurrentLabel() {
+    	return inFunctionScope ? labelsFunction : labels;
+    }
+    
+    private int updateCurrentLabel(int upd) {
+    	int label;
+    	
+    	if (inFunctionScope) {
+			labelsFunction += upd;
+			label = labelsFunction;
+		} else {
+			labels += upd;
+			label = labels;
+		}
+    	
+    	return label;
     }
 }

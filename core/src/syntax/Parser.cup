@@ -171,7 +171,7 @@ non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
 non terminal FallthroughStmt, Block, DeferStmt, SelectStmt;
 non terminal CommClause, CommCase, StmtOpt, RecvStmt, RecvStmtAux, RecvStmtAux2;
 
-non terminal IfStmt, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
+non terminal IfStmt, IfStmt2, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
 non terminal SimpleStmtSc;
 
 non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimplesStmtStarAux;
@@ -476,12 +476,14 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF {: Semantic.getInstance().createIfCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux:ifsaux {: Semantic.getInstance().exitCurrentScope(ifsaux.toString()); :} ;
+IfStmt         ::= IF {: Semantic.getInstance().createIfCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 
-IfStmtAux      ::=   ELSE {: RESULT = "elseif"; :} IfStmt
-                   | ELSE {: Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScope("nothing"); RESULT = "else";  :}
-				   | {: RESULT = "nothing"; :};
+IfStmt2         ::= IF {: Semantic.getInstance().createIfElseCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux:ifsaux {: Semantic.getInstance().exitCurrentScopeEndIf(); :} ;
+
+IfStmtAux      ::=   ELSE IfStmt2
+                   | ELSE {: Semantic.getInstance().createElseCode(); Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScopeEndIf(); :}
+				   |      {: Semantic.getInstance().exitCurrentScopeEndIf(); :};
 
 /* ------------------ SelectStmt ------------------- */
 SelectStmt  ::= SELECT CURLY_L CommClause CURLY_R;

@@ -50,7 +50,7 @@ public class Semantic {
 	 * will still be available in functions.
 	 */
 	private Stack<ScopedEntity> scopeStack = new Stack<>();
-	
+		
 	/* File organization:
 	 * 		1. Semantic Basics: basic + buffer related methods.
 	 * 		2. Helper Functions
@@ -479,9 +479,9 @@ public class Semantic {
 	}
 	
 	/* Code generation */
-	public void exitCurrentScope(String flag) throws Exception {
+	public void exitCurrentScopeEndIf() {
 		scopeStack.pop();
-		codeGenerator.endIf(flag);
+		codeGenerator.endIf();
 	}
 	
 	public ScopedEntity getCurrentScope() {
@@ -656,8 +656,15 @@ public class Semantic {
 	 * -----------------------------------------------------------------------------------
 	 * */
 	public void createIfCode() {
-		System.out.println("AQUIIIIIIIIIIIIIIIIII");
 		codeGenerator.createIf();
+	}
+	
+	public void createIfElseCode() {
+		codeGenerator.createIfElse();
+	}
+	
+	public void createElseCode() {
+		codeGenerator.createElse();
 	}
 
 }
