@@ -1,11 +1,11 @@
 100: LD SP, #4000
-108: LD R0, 0
-116: ST x, R0
-124: LD R1, 0
-132: ST y, R1
-140: LD R2, 0
-148: ST z, R2
+108: LD R3, #0
+116: ST x, R3
+124: LD R4, #0
+132: ST y, R4
+140: LD R5, #0
+148: ST z, R5
 
 function main
-600: ADD R3, R1, R2
-608: ST x, R3
+1000: ADD R6, R4, R5
+1008: ST x, R6

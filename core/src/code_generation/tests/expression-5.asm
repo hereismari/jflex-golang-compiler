@@ -1,17 +1,17 @@
 100: LD SP, #4000
-108: LD R0, 0
-116: ST a, R0
-124: LD R1, 0
-132: ST b, R1
-140: LD R2, 0
-148: ST c, R2
-156: LD R3, 0
-164: ST d, R3
-172: LD R4, 0
-180: ST e, R4
+108: LD R3, #0
+116: ST a, R3
+124: LD R4, #0
+132: ST b, R4
+140: LD R5, #0
+148: ST c, R5
+156: LD R6, #0
+164: ST d, R6
+172: LD R7, #0
+180: ST e, R7
 
 function main
-600: MUL R5, R1, R2
-608: ST a, R5
-616: ADD R6, R5, R3
-624: ST e, R6
+1000: MUL R8, R4, R5
+1008: ST a, R8
+1016: ADD R9, R8, R6
+1024: ST e, R9

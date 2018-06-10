@@ -59,9 +59,12 @@ public class CodeGenerator {
     public void init() {
     	labels = 100;
     	assemblyCode = "100: LD SP, #4000\n";
-        rnumber = -1;
         
-        labelsFunction = 592;
+    	// Register 0: store a function return
+    	// Register 1 and 2: if else branches
+    	rnumber = 2;
+        
+        labelsFunction = 992;
     	inFunctionScope = false;
     	codeFunctions = new ArrayList<>();
     }
@@ -95,10 +98,12 @@ public class CodeGenerator {
             	addCodeLoading(var);
             var = Semantic.getInstance().getVariable(var.getName());
             reg1 = var.getValue().getReg();
+        } else if (obj instanceof Function) {
+        	reg1 = "R0";
         } else {
             Expression temp = (Expression) obj;
             if (temp.getReg() == null) {
-                reg1 = temp.getValue().toString();
+                reg1 = "#" + temp.getValue().toString();
             } else {
                 reg1 = temp.getReg();
             }
@@ -194,11 +199,19 @@ public class CodeGenerator {
     
     public void addCodeLoadingExpression(Expression e) throws SemanticException {
         e.setReg(allocateRegister());
-        addCode(": LD " + e.getReg() +", "+ e.getValue());
+        
+        String value = e.getValue();
+        
+        // If name == null it is a literal
+        if(e.getName() == null) {
+        	value = "#" + value;
+        }
+        
+        addCode(": LD " + e.getReg() +", " + value);
     }
     
     public void addCodeLoading(Variable v) throws SemanticException {
-        v.getValue().setReg(allocateRegister());
+    	v.getValue().setReg(allocateRegister());
         addCode(": LD " + v.getValue().getReg() +", "+ v.getName());
     }
     
@@ -211,7 +224,10 @@ public class CodeGenerator {
     	f.setLabels(labelsFunction + 8);
     }
     
-    public void addReturnCode() {
+    public void addReturnCode(Expression e) {
+    	if (e.getValue() != null) {
+    		addCode(": LD R0, " + e.getValue());
+    	}
     	addCode(": BR *0(SP)");
     }
     
