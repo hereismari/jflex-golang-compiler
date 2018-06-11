@@ -6,7 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
+import code_generation.models.IfElseScope;
 import code_generation.models.OpToAssembly;
 
 import semantic.Semantic;
@@ -18,10 +20,10 @@ import semantic.models.Variable;
 public class CodeGenerator {
 
 	/* Memory indicator. */
-    private int labels;
+    private Integer labels;
     
     /* Memory indicator for functions. */
-    private int labelsFunction;
+    private Integer labelsFunction;
     private List<String> codeFunctions;
     // Hack to know if code is inside function or not
     private boolean inFunctionScope;
@@ -35,9 +37,10 @@ public class CodeGenerator {
     /* Used to allocate registers. */
     private static int rnumber;
 
-    //private Stack<IfScope> ifScopeStack = new Stack<>();
-    //private Stack<ElseScope> elseScopeStack = new Stack<>();
-    
+    /* If else stack. Used to properly define branch statement. */
+    private Stack<IfElseScope> ifElseStack = new Stack<>();
+    private static int ifnumber;
+
     /* File organization:
 	 * 		1. CodeGenerator Basics
 	 * 		2. Registers
@@ -45,6 +48,7 @@ public class CodeGenerator {
 	 *  	4. Operations
 	 *      5. Adding Code
 	 *      6. Function
+	 *      7. If Else
 	 * -----------------------------------------------------------------------------------
 	 * */
 
@@ -61,8 +65,8 @@ public class CodeGenerator {
     	assemblyCode = "100: LD SP, #4000\n";
         
     	// Register 0: store a function return
-    	// Register 1 and 2: if else branches
-    	rnumber = 2;
+    	rnumber = 0;
+    	ifnumber = -1;
         
         labelsFunction = 992;
     	inFunctionScope = false;
@@ -123,7 +127,7 @@ public class CodeGenerator {
             }
             
             String reg = var.getValue().getReg().toString();
-            addCode(": ST " + var.getName() + ", " + reg);
+            addCode("ST " + var.getName() + ", " + reg);
         }
     }
 
@@ -132,20 +136,53 @@ public class CodeGenerator {
 	 * -----------------------------------------------------------------------------------
 	 * */
     public Expression generateOpCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
-    	// Allocate register to resulting expression
-    	String reg = allocateRegister();
-        exp.setReg(reg);
-        
-        String reg1 = getRegisterFromObject(obj1);
-        String reg2 = getRegisterFromObject(obj2);
-        addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        if(OpToAssembly.isRelop(op)) {
+            exp = generateRelopCode(obj1, obj2, exp, op);
+        } else {
+        	// Allocate register to resulting expression
+        	String reg = allocateRegister();
+            exp.setReg(reg);
+        	
+        	String reg1 = getRegisterFromObject(obj1);
+            String reg2 = getRegisterFromObject(obj2);
+            addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg1 + ", " + reg2);
+        }
         
         return exp;
     }
-    
+
     public void generateOpCode(Object obj, Expression exp, String op) throws SemanticException {
         String reg = getRegisterFromObject(obj);
-        addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
+        addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + reg);
+    }
+    
+    public Expression generateRelopCode(Object obj1, Object obj2, Expression exp, String op) throws SemanticException {
+    	String reg1 = getRegisterFromObject(obj1);
+        String reg2 = getRegisterFromObject(obj2);
+        
+        OpToAssembly operator = OpToAssembly.getOperator(op);
+        String subReg = allocateRegister();
+        
+        if(!ifElseStack.empty() && !ifElseStack.peek().initialized()) {
+        	ifElseStack.peek().initialize(getCurrentLabel(), subReg, reg1, reg2, operator);
+        	
+        	// Every if else will have 2 operations in the beginning
+        	if(inFunctionScope) {
+    			labelsFunction += 16;
+    		} else {
+    			labels += 16;
+    		}
+        	
+        } else {
+	        addCode("SUB " + subReg + ", " + reg1 + ", " + reg2);
+	        addCode(operator.getRelOperator() + " " + subReg + ", ", 24);
+	        addCode("LD " + subReg + ", #true");
+	        addCode("BR ", 16);
+	        addCode("LD " + subReg + ", #false");
+        }
+    	
+        exp.setReg(subReg);
+        return exp;
     }
     
 	public Expression generateUnaryCode(Object obj, Expression exp, String op) throws SemanticException {
@@ -157,7 +194,7 @@ public class CodeGenerator {
 			exp.setReg(reg);
 
 			String objReg = getRegisterFromObject(obj);
-			addCode(": " + OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + objReg);
+			addCode(OpToAssembly.mapOp(op) + " " + exp.getReg() + ", " + objReg);
 
 			return exp;
 		}
@@ -171,29 +208,39 @@ public class CodeGenerator {
     	if (!assemblyString.substring(assemblyString.length() - 1).equals("\n")) {
            assemblyString += "\n";
         }
-    	
-    	// TODO: Missing if/else checking
-    	if (inFunctionScope) {
+
+    	if (!ifElseStack.empty() && ifElseStack.peek().initialized()) {
+    		IfElseScope ifElse = ifElseStack.peek();
+    		Integer label = updateCurrentLabel(8);
+    		String code = ifElse.getCode();
+    		code += label + ": " + assemblyString;
+    		ifElse.setCode(code);    		
+    	} else if (inFunctionScope) {
     		String functionCode = codeFunctions.get(codeFunctions.size()-1);
     		labelsFunction += 8;
-    		functionCode += labelsFunction + assemblyString;
+    		functionCode += labelsFunction + ": " + assemblyString;
     		codeFunctions.set(codeFunctions.size()-1, functionCode);
     	} else {
     		labels += 8;
-    		assemblyCode += labels + assemblyString;
+    		assemblyCode += labels + ": " + assemblyString;
     	}
     }
     
-    
     private void addCode(String assemblyString, int branchToAddLabels) {
-     	if (inFunctionScope) {
+    	if (!ifElseStack.empty() && ifElseStack.peek().initialized()) {
+    		IfElseScope ifElse = ifElseStack.peek();
+    		Integer label = updateCurrentLabel(8);
+    		String code = ifElse.getCode();
+    		code += label + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
+    		ifElse.setCode(code);    		
+    	} else if (inFunctionScope) {
      		String functionCode = codeFunctions.get(codeFunctions.size()-1);
      		labelsFunction += 8;
-     		functionCode += labelsFunction + assemblyString + (labelsFunction + branchToAddLabels) + "\n";
+     		functionCode += labelsFunction + ": " + assemblyString + "#" + (labelsFunction + branchToAddLabels) + "\n";
      		codeFunctions.set(codeFunctions.size()-1, functionCode);
      	} else {
      		labels += 8;
-     		assemblyCode += labels + assemblyString + (labelsFunction + branchToAddLabels) + "\n";
+     		assemblyCode += labels + ": " + assemblyString + "#" + (labels + branchToAddLabels) + "\n";
      	}
 	}
     
@@ -207,15 +254,15 @@ public class CodeGenerator {
         	value = "#" + value;
         }
         
-        addCode(": LD " + e.getReg() +", " + value);
+        addCode("LD " + e.getReg() +", " + value);
     }
     
     public void addCodeLoading(Variable v) throws SemanticException {
     	v.getValue().setReg(allocateRegister());
-        addCode(": LD " + v.getValue().getReg() +", "+ v.getName());
+        addCode("LD " + v.getValue().getReg() +", "+ v.getName());
     }
     
-    /* 5. Function
+    /* 6. Function
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void createFunction(Function f) {
@@ -225,10 +272,13 @@ public class CodeGenerator {
     }
     
     public void addReturnCode(Expression e) {
-    	if (e.getValue() != null) {
-    		addCode(": LD R0, " + e.getValue());
+    	if(e.getReg() != null) {
+    		addCode("LD R0, " + e.getReg());
     	}
-    	addCode(": BR *0(SP)");
+    	else if (e.getValue() != null) {
+    		addCode("LD R0, #" + e.getValue());
+    	}
+    	addCode("BR *0(SP)");
     }
     
     public void endFunction() {
@@ -237,10 +287,10 @@ public class CodeGenerator {
     }
     
     public void addFunctionCall(Function f) {
-    	addCode(": ADD SP, SP, #" + f.getName() + "size");
-    	addCode(": ST *SP, #", 16);
-    	addCode(": BR #" + f.getLabels());
-    	addCode(": SUB SP, SP, #" + f.getName() + "size");
+    	addCode("ADD SP, SP, #" + f.getName() + "size");
+    	addCode("ST *SP, ", 16);
+    	addCode("BR #" + f.getLabels());
+    	addCode("SUB SP, SP, #" + f.getName() + "size");
     }
 
 	private void addFunctionsToCode() {
@@ -248,5 +298,95 @@ public class CodeGenerator {
     		assemblyCode += "\n";
     		assemblyCode += functionCode;
     	}
+    }
+	
+	/* 7. If Else
+	 * -----------------------------------------------------------------------------------
+	 * */
+    public void createIf() {
+    	System.out.println("-------------------Create if");
+    	ifnumber++;
+    	IfElseScope ifelse = new IfElseScope("if", ifnumber);
+    	ifElseStack.push(ifelse);
+    }
+    
+    public void createIfElse() {
+    	System.out.println("-------------------Create if else");
+    	updateLastBranchLabel();
+    	IfElseScope ifelse = new IfElseScope("ifelse", ifnumber);
+    	ifElseStack.push(ifelse);
+    }
+    
+    public void createElse() {
+    	System.out.println("-------------------Create else");
+    	updateLastBranchLabel();
+    	IfElseScope ifelse = new IfElseScope("else", ifnumber, getCurrentLabel());
+    	ifElseStack.push(ifelse);
+    }
+    
+    private void updateLastBranchLabel() {
+    	if(inFunctionScope) {
+			labelsFunction += 8;
+	    	ifElseStack.peek().setLastBranchLabel(labelsFunction);
+		} else {
+			labels += 8;
+	    	ifElseStack.peek().setLastBranchLabel(labels);
+		}
+    }
+    
+    public void endIf() {
+    	unstackIf();
+    }
+    
+    private void unstackIf() {
+    	String auxCode = "";
+    	for(int i = 0; i < ifElseStack.size(); i++) {
+    		if(ifElseStack.get(i).getCodeGenerationLevel() == ifnumber) {
+    			IfElseScope currIf = ifElseStack.get(i);
+    			
+    			boolean lastIfElse = i == (ifElseStack.size()-1);
+    			currIf.setEndLine(getCurrentLabel() + 8);
+    			
+    			if(!lastIfElse) {
+    				currIf.setFailLine(ifElseStack.get(i+1).getLabel() + 8);
+    			}
+    			
+    			auxCode += ifElseStack.get(i).generateCode(lastIfElse);
+    		}
+    	}
+    	
+    	while(!ifElseStack.empty() && ifElseStack.peek().getCodeGenerationLevel() == ifnumber) {
+    		ifElseStack.pop();
+    	}
+    	
+    	ifnumber--;
+    	
+    	if(!ifElseStack.empty()) {
+    		ifElseStack.peek().addToCode(auxCode);
+    	} else if(inFunctionScope) {
+    		String functionCode = codeFunctions.get(codeFunctions.size()-1);
+    		functionCode += auxCode;
+    		codeFunctions.set(codeFunctions.size()-1, functionCode);
+    	} else {
+        	assemblyCode += auxCode;	
+    	}
+    }
+    
+    private int getCurrentLabel() {
+    	return inFunctionScope ? labelsFunction : labels;
+    }
+    
+    private int updateCurrentLabel(int upd) {
+    	int label;
+    	
+    	if (inFunctionScope) {
+			labelsFunction += upd;
+			label = labelsFunction;
+		} else {
+			labels += upd;
+			label = labels;
+		}
+    	
+    	return label;
     }
 }

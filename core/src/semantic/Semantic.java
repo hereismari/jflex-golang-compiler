@@ -50,7 +50,7 @@ public class Semantic {
 	 * will still be available in functions.
 	 */
 	private Stack<ScopedEntity> scopeStack = new Stack<>();
-	
+		
 	/* File organization:
 	 * 		1. Semantic Basics: basic + buffer related methods.
 	 * 		2. Helper Functions
@@ -61,6 +61,7 @@ public class Semantic {
 	 * 		7. If Else
 	 *      8. Declaring Variables
 	 *      9. TypeCoersion
+	 *      10. Code Generarion Related
 	 * -----------------------------------------------------------------------------------
 	 * */
 	
@@ -423,7 +424,8 @@ public class Semantic {
 	public void FunctionInitializeParameters(Type type) throws SemanticException {
 		System.out.println("Initializing parameters with type: " + type);
 		Function f = (Function) scopeStack.peek();
-		f.initializeParameters(type);
+		/* Code generation */
+		f.initializeParameters(type, codeGenerator);
 	}
 	
 	public void FunctionCheckParameters(Expression expr) throws SemanticException {
@@ -454,9 +456,6 @@ public class Semantic {
 		}
 		
 		expBuffer.clear();
-		
-		/* Code generation */
-		codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 
@@ -475,6 +474,12 @@ public class Semantic {
 			/* Code generation */
 			codeGenerator.endFunction();
 		}
+	}
+	
+	/* Code generation */
+	public void exitCurrentScopeEndIf() {
+		scopeStack.pop();
+		codeGenerator.endIf();
 	}
 	
 	public ScopedEntity getCurrentScope() {
@@ -643,6 +648,27 @@ public class Semantic {
 		}
 		
 		return newExpression;
+	}
+	
+	/* 10. Code Generation Related 
+	 * -----------------------------------------------------------------------------------
+	 * */
+	public void createIfCode() {
+		codeGenerator.createIf();
+	}
+	
+	public void createIfElseCode() {
+		codeGenerator.createIfElse();
+	}
+	
+	public void createElseCode() {
+		codeGenerator.createElse();
+	}
+	
+	public void functionCallCode(Expression expr) {
+		System.out.println("Call " + expr);
+		if (functions.containsKey(expr.getName()))
+			codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 }
