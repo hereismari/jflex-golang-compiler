@@ -17,7 +17,7 @@ public enum OpToAssembly {
 	LT("<",  "relOp", "BGEZ"),
     LTEQ("<=", "relOp", "BGZ"),
 	GT(">", "relOp", "BLEZ"),
-	GTEQ(">=", "relOp", "BLZ"); 
+	GTEQ(">=", "relOp", "BLTZ"); 
 
 	private final String name;
 	private final String type;

@@ -4,7 +4,7 @@
 124: LD R2, #2
 132: ST x, R2
 140: SUB R3, R1, R2
-148: BLZ R3, #172
+148: BLTZ R3, #172
 156: LD R3, #true
 164: BR #180
 172: LD R3, #false
