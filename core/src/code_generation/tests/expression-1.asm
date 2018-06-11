@@ -1,8 +1,12 @@
 100: LD SP, #4000
-108: ST y, 0
-116: MUL R0, 3, 60
-124: ADD R1, 1, R0
-132: ST x, R1
-140: ST w, ""
-148: ST k, ""
-156: ST x2, "compiladores"
+108: LD R1, #0
+116: ST y, R1
+124: MUL R2, #3, #60
+132: ADD R3, #1, R2
+140: ST x, R3
+148: LD R4, #""
+156: ST w, R4
+164: LD R5, #""
+172: ST k, R5
+180: LD R6, #"compiladores"
+188: ST x2, R6

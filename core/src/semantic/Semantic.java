@@ -50,7 +50,7 @@ public class Semantic {
 	 * will still be available in functions.
 	 */
 	private Stack<ScopedEntity> scopeStack = new Stack<>();
-	
+		
 	/* File organization:
 	 * 		1. Semantic Basics: basic + buffer related methods.
 	 * 		2. Helper Functions
@@ -61,6 +61,7 @@ public class Semantic {
 	 * 		7. If Else
 	 *      8. Declaring Variables
 	 *      9. TypeCoersion
+	 *      10. Code Generarion Related
 	 * -----------------------------------------------------------------------------------
 	 * */
 	
@@ -204,7 +205,14 @@ public class Semantic {
 
 		validateUnaryOperation(op, expr.getType());
 		String exprValue = op + expr.getValue();
-		Expression resultingExpr = new Expression(expr.getType(), exprValue);
+		String exprName = expr.getName() == null ? null : "Var: " + expr.getName();
+
+		Expression resultingExpr = new Expression(expr.getType(), exprName, exprValue);
+		resultingExpr.setReg(expr.getReg());
+
+		Object obj = expressionToObject(expr);
+		resultingExpr = codeGenerator.generateUnaryCode(obj, resultingExpr, op);
+
 		return resultingExpr;
 	}
 
@@ -238,19 +246,24 @@ public class Semantic {
 
 		/* Code generation */
 		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
+		Object ob1 = expressionToObject(e1);
+		Object ob2 = expressionToObject(e2);
 		
-		Object ob1 = e1;
-		Object ob2 = e2;
-		if(checkVariableAllScopes(e1.getName())) {
-			ob1 = getVariable(e1.getName());
-		}
-		if(checkVariableAllScopes(e2.getName())) {
-			ob2 = getVariable(e2.getName());
-		}
-
 		resultingExpr = codeGenerator.generateOpCode(ob1, ob2, resultingExpr, op);
 
 		return resultingExpr;
+	}
+	
+	private Object expressionToObject(Expression e) throws SemanticException {
+		Object ob = e;
+		if(checkVariableAllScopes(e.getName())) {
+			ob = getVariable(e.getName());
+		}
+		else if(functions.containsKey(e.getName())) {
+			ob = functions.get(e.getName());
+		}
+		
+		return ob;
 	}
 
 	private String formatExpressionName(Expression e1, Expression e2) {
@@ -366,6 +379,9 @@ public class Semantic {
 		System.out.println("Creating function: " + functionName);
 		System.out.println(functions);
 		createNewScope(f);
+		
+		/* Code generation */
+		codeGenerator.createFunction(f);
 	}
 	
 	public void FunctionAddReturnType(Type type) {
@@ -379,18 +395,23 @@ public class Semantic {
 		for(int i = scopeStack.size()-1; i >= 0; i--) {
 			try {
 				f = (Function) scopeStack.get(i);
+				break;
 			} catch(ClassCastException cce) {
-				
+				// IfElse: do nothing
 			}
 		}
 		
 		if(f == null) {
-			throwSemanticException("Retun statement should be only inside a function.");
+			throwSemanticException("Retun statement should be inside a function.");
 		}
 		
 		e = assignTypeIfNeeded(e);
 		f.setReturnedExpression(e);
 		clearBuffers();
+		
+		/* Code generation */
+		codeGenerator.addReturnCode(e);
+		
 	}
 	
 	public void FunctionAddParameter(String varName) throws SemanticException {
@@ -403,7 +424,8 @@ public class Semantic {
 	public void FunctionInitializeParameters(Type type) throws SemanticException {
 		System.out.println("Initializing parameters with type: " + type);
 		Function f = (Function) scopeStack.peek();
-		f.initializeParameters(type);
+		/* Code generation */
+		f.initializeParameters(type, codeGenerator);
 	}
 	
 	public void FunctionCheckParameters(Expression expr) throws SemanticException {
@@ -435,28 +457,7 @@ public class Semantic {
 		
 		expBuffer.clear();
 	}
-	
-	public boolean checkFunctionName(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null;
-	}
-	
-	public boolean checkFunctionCall(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null && f.getParameterTypes().size() == 0;
-	}
-	
-	public boolean checkFunctionCall(String functionName, Variable[] variables) {
-		Function f = functions.get(functionName);
-		if (f != null && f.getParameterTypes().size() == variables.length) {
-			for (int i = 0 ; i < variables.length ; i++) {
-				if (!variables[i].getType().equals(f.getParameterTypes().get(i)))
-					return false;
-			}
-			return true;
-		}
-		return false;
-	}
+
 
 	/* 6. Scope
 	 * -----------------------------------------------------------------------------------
@@ -467,8 +468,18 @@ public class Semantic {
 	
 	public void exitCurrentScope() throws SemanticException {
 		ScopedEntity scoped = scopeStack.pop();
-		if (scoped instanceof Function)
+		if (scoped instanceof Function) {
 			((Function) scoped).validateReturnedType();
+		
+			/* Code generation */
+			codeGenerator.endFunction();
+		}
+	}
+	
+	/* Code generation */
+	public void exitCurrentScopeEndIf() {
+		scopeStack.pop();
+		codeGenerator.endIf();
 	}
 	
 	public ScopedEntity getCurrentScope() {
@@ -528,6 +539,12 @@ public class Semantic {
 		// Update var
 		var.setType(t);
 		var.setValue(exp);
+		
+		/* Code generation */
+		Object ob = expressionToObject(exp);
+		if (ob instanceof Function) {
+			var.getValue().setReg("R0");
+		}
 		
 		return var;
 	}
@@ -634,11 +651,11 @@ public class Semantic {
 	 * */
 	private Expression assignTypeIfNeeded(Expression e) throws SemanticException {
 		Expression newExpression = new Expression(e.getType(), e.getName(), e.getValue());
+		newExpression.setReg(e.getReg());
 		
 		if(newExpression.getType() == Type.UNKNOWN) {
 			try {
 				Function f = functions.get(e.getName());
-				System.out.println(f.getReturnType());
 				newExpression.setType(f.getReturnType());
 				newExpression.setValue(f.getReturnedExpression().getValue());
 			} catch(NullPointerException npe) {
@@ -648,6 +665,27 @@ public class Semantic {
 		}
 		
 		return newExpression;
+	}
+	
+	/* 10. Code Generation Related 
+	 * -----------------------------------------------------------------------------------
+	 * */
+	public void createIfCode() {
+		codeGenerator.createIf();
+	}
+	
+	public void createIfElseCode() {
+		codeGenerator.createIfElse();
+	}
+	
+	public void createElseCode() {
+		codeGenerator.createElse();
+	}
+	
+	public void functionCallCode(Expression expr) {
+		System.out.println("Call " + expr);
+		if (functions.containsKey(expr.getName()))
+			codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 }

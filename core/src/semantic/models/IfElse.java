@@ -5,16 +5,14 @@ import semantic.exceptions.SemanticException;
 public class IfElse extends ScopedEntity{
 	
 	private Expression expression;
-	
+
 	public IfElse() {
 		super("if");
-		
 	}
 
 	public IfElse(Expression expression) throws SemanticException {
 		super("if");
-		checkExpression(expression);
-		this.expression = expression;
+		setExpression(expression);
 	}
 
 	public void setExpression(Expression e) throws SemanticException {

@@ -101,7 +101,7 @@ StringLit            = {RawStringLit} | {IntStringLit}
 
 // White space and comments
 WhiteSpace     = {Newline} | [ \t\f]
-LineComment    = "//"({UnicodeChar} | "||")*{Newline}?
+LineComment    = "//"({UnicodeChar} | "|" | "^" | "*")*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
 Identifier     = {Letter}({Letter} | {UnicodeDigit})*

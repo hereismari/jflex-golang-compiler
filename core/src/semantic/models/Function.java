@@ -3,6 +3,7 @@ package semantic.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import code_generation.CodeGenerator;
 import semantic.exceptions.SemanticException;
 
 public class Function extends ScopedEntity {
@@ -12,6 +13,9 @@ public class Function extends ScopedEntity {
 	
 	private Expression returnedExpression = new Expression();
 	private boolean seenReturn = false;
+	
+	/* Code generation */
+	private Integer labels = null;
 
 	public Function(String name, ArrayList<Variable> parameters) throws SemanticException {
 		super(name);
@@ -59,9 +63,12 @@ public class Function extends ScopedEntity {
 		this.returnType = type;
 	}
 	
-	@Override
-	public String toString() {
-		return "{ Function: " + getName() + " " + getReturnType() + " " + parameters + " }";
+	public Integer getLabels() {
+		return labels;
+	}
+	
+	public void setLabels(Integer labels) {
+		this.labels = labels;
 	}
 
 	/* Checks if the function returned what it was supposed to */
@@ -82,12 +89,17 @@ public class Function extends ScopedEntity {
 		return returnedExpression;
 	}
 
-	public void initializeParameters(Type type) {
+	public void initializeParameters(Type type, CodeGenerator cg) throws SemanticException {
 		for(Variable v: parameters) {
 			if(v.getType() == Type.UNKNOWN) {
 				v.setType(type);
+				cg.variableDeclaration(v);
 			}
-		}
-		
+		}	
+	}
+	
+	@Override
+	public String toString() {
+		return "{ Function: " + getName() + " " + getReturnType() + " " + parameters + " }";
 	}
 }
