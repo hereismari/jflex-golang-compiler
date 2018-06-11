@@ -558,7 +558,9 @@ public class Semantic {
 			} else {
 				Expression expbefr = expBufferBeforeAssign.get(0);
 				Expression exp = expBuffer.get(0);
-				Variable var = updateVar(expbefr, exp);
+				
+				Expression resultExpr = calculateOpAssign(assignment, expbefr, exp);
+				Variable var = updateVar(expbefr, resultExpr);
 				
 				/* Code generation */
 				codeGenerator.variableDeclaration(var);
@@ -566,6 +568,21 @@ public class Semantic {
 		}
 
 		clearBuffers();
+	}
+
+	private Expression calculateOpAssign(String assignment, Expression expbefr, Expression exp)
+			throws SemanticException {
+		Expression resultExpr = new Expression();
+		if (assignment == "+=") {
+			resultExpr = calculateExpr(expbefr, "+", exp);
+		} else if (assignment == "*=") {
+			resultExpr = calculateExpr(expbefr, "*", exp);
+		} else if (assignment == "-=") {
+			resultExpr = calculateExpr(expbefr, "-", exp);
+		} else if (assignment == "/=") {
+			resultExpr = calculateExpr(expbefr, "/", exp);
+		}
+		return resultExpr;
 	}
 	
 	public Type checkVariableDeclaration(Type variableType, Type expressionType) throws SemanticException {
