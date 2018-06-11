@@ -11,7 +11,7 @@ function block
 1024: LD R0, R4
 1032: BR *0(SP)
 1040: SUB R5, #1, #2
-1048: BLZ R5, #1080
+1048: BLTZ R5, #1080
 1056: LD R0, #false
 1064: BR *0(SP)
 1072: BR #1096
