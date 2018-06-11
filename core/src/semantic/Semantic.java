@@ -16,12 +16,17 @@ import semantic.models.IfElse;
 import semantic.models.ScopedEntity;
 import semantic.models.Variable;
 
+import code_generation.CodeGenerator;
+
 public class Semantic {
 
-	/* Semantic instance */
+	/* Semantic instance. */
 	private static Semantic semantic = new Semantic();
 	
-	/* Global variables and functions declared */
+	/* CodeGenerator instance. */
+	private static CodeGenerator codeGenerator = new CodeGenerator();
+	
+	/* Global variables and functions declared. */
 	private Map<String, Variable> variables = new HashMap<>();
 	private Map<String, Function> functions = new HashMap<>();
 	
@@ -45,7 +50,7 @@ public class Semantic {
 	 * will still be available in functions.
 	 */
 	private Stack<ScopedEntity> scopeStack = new Stack<>();
-	
+		
 	/* File organization:
 	 * 		1. Semantic Basics: basic + buffer related methods.
 	 * 		2. Helper Functions
@@ -56,6 +61,7 @@ public class Semantic {
 	 * 		7. If Else
 	 *      8. Declaring Variables
 	 *      9. TypeCoersion
+	 *      10. Code Generarion Related
 	 * -----------------------------------------------------------------------------------
 	 * */
 	
@@ -66,6 +72,10 @@ public class Semantic {
 
 	public static Semantic getInstance() {
 		return semantic;
+	}
+	
+	public CodeGenerator getCodeGenerator() {
+		return codeGenerator;
 	}
 
 	public Map<String, Variable> getVariables() {
@@ -118,7 +128,7 @@ public class Semantic {
 	/* 3. Variables
 	 * -----------------------------------------------------------------------------------
 	 * */
-	public boolean checkVariableNameAllScopes(String name) {
+	public boolean checkVariableAllScopes(String name) {
 		Set<String> allVariables = new HashSet<String>();
 		allVariables.addAll(variables.keySet());
 		for (int i = 0 ; i < scopeStack.size(); i++) {
@@ -136,16 +146,20 @@ public class Semantic {
 			throwSemanticException("Variable " + var.getName() + " was already declared in this scope.");
 		
 		if (!scopeStack.isEmpty()) {
-			System.out.println("Adding variable in scope: " + var);
+			System.out.println("Adding variable in specific scope: " + var);
 			scopeStack.peek().addVariable(var);
 		} else {
 			// if function exists with the same name in the same scope variable can't be declared
 			if(functions.containsKey(var.getName())) {
 				throwSemanticException(var.getName() + " redeclared in this block.");
 			}
-			System.out.println("Adding variable in variables: " + var);
+			System.out.println("Adding variable in main scope: " + var);
 			variables.put(var.getName(), var);
 		}
+		
+		/* Code generation */
+		codeGenerator.variableDeclaration(var);
+				
 		System.out.println(variables);
 	}
 	
@@ -191,7 +205,14 @@ public class Semantic {
 
 		validateUnaryOperation(op, expr.getType());
 		String exprValue = op + expr.getValue();
-		Expression resultingExpr = new Expression(expr.getType(), exprValue);
+		String exprName = expr.getName() == null ? null : "Var: " + expr.getName();
+
+		Expression resultingExpr = new Expression(expr.getType(), exprName, exprValue);
+		resultingExpr.setReg(expr.getReg());
+
+		Object obj = expressionToObject(expr);
+		resultingExpr = codeGenerator.generateUnaryCode(obj, resultingExpr, op);
+
 		return resultingExpr;
 	}
 
@@ -218,12 +239,31 @@ public class Semantic {
 	}
 
 	public Expression calculateExpr(Expression e1, String op, Expression e2) throws SemanticException {
-		Type resultingType = this.validateBinOperation(e1, op, e2);
+		Type resultingType = validateBinOperation(e1, op, e2);
 		String exprValue = e1.getValue() + op + e2.getValue();
 		String exprName = formatExpressionName(e1, e2);
 		
+
+		/* Code generation */
 		Expression resultingExpr = new Expression(resultingType, exprName, exprValue);
+		Object ob1 = expressionToObject(e1);
+		Object ob2 = expressionToObject(e2);
+		
+		resultingExpr = codeGenerator.generateOpCode(ob1, ob2, resultingExpr, op);
+
 		return resultingExpr;
+	}
+	
+	private Object expressionToObject(Expression e) throws SemanticException {
+		Object ob = e;
+		if(checkVariableAllScopes(e.getName())) {
+			ob = getVariable(e.getName());
+		}
+		else if(functions.containsKey(e.getName())) {
+			ob = functions.get(e.getName());
+		}
+		
+		return ob;
 	}
 
 	private String formatExpressionName(Expression e1, Expression e2) {
@@ -231,11 +271,11 @@ public class Semantic {
 		String e2Name = e2.getName();
 
 		if (e1Name != null && e2Name != null) {
-			return e1Name + e2Name;
+			return "Var: " + e1Name + " Var: " + e2Name;
 		} else if (e1Name != null) {
-			return e1Name;
+			return "Var: " + e1Name;
 		} else if (e2Name != null) {
-			return e2Name;
+			return "Var: " + e2Name;
 		}
 		return null;
 	}
@@ -339,6 +379,9 @@ public class Semantic {
 		System.out.println("Creating function: " + functionName);
 		System.out.println(functions);
 		createNewScope(f);
+		
+		/* Code generation */
+		codeGenerator.createFunction(f);
 	}
 	
 	public void FunctionAddReturnType(Type type) {
@@ -352,18 +395,23 @@ public class Semantic {
 		for(int i = scopeStack.size()-1; i >= 0; i--) {
 			try {
 				f = (Function) scopeStack.get(i);
+				break;
 			} catch(ClassCastException cce) {
-				
+				// IfElse: do nothing
 			}
 		}
 		
 		if(f == null) {
-			throwSemanticException("Retun statement should be only inside a function.");
+			throwSemanticException("Retun statement should be inside a function.");
 		}
 		
 		e = assignTypeIfNeeded(e);
 		f.setReturnedExpression(e);
 		clearBuffers();
+		
+		/* Code generation */
+		codeGenerator.addReturnCode(e);
+		
 	}
 	
 	public void FunctionAddParameter(String varName) throws SemanticException {
@@ -376,7 +424,8 @@ public class Semantic {
 	public void FunctionInitializeParameters(Type type) throws SemanticException {
 		System.out.println("Initializing parameters with type: " + type);
 		Function f = (Function) scopeStack.peek();
-		f.initializeParameters(type);
+		/* Code generation */
+		f.initializeParameters(type, codeGenerator);
 	}
 	
 	public void FunctionCheckParameters(Expression expr) throws SemanticException {
@@ -386,7 +435,7 @@ public class Semantic {
 			
 			// Variable can be declared in scope with the same name as a function
 			// if this is the case the function can not be called
-			if(checkVariableNameAllScopes(expr.getName())) {
+			if(checkVariableAllScopes(expr.getName())) {
 				throwSemanticException("cannot call non-function " + expr.getName());
 			}
 
@@ -408,28 +457,7 @@ public class Semantic {
 		
 		expBuffer.clear();
 	}
-	
-	public boolean checkFunctionName(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null;
-	}
-	
-	public boolean checkFunctionCall(String functionName) {
-		Function f = functions.get(functionName);
-		return f != null && f.getParameterTypes().size() == 0;
-	}
-	
-	public boolean checkFunctionCall(String functionName, Variable[] variables) {
-		Function f = functions.get(functionName);
-		if (f != null && f.getParameterTypes().size() == variables.length) {
-			for (int i = 0 ; i < variables.length ; i++) {
-				if (!variables[i].getType().equals(f.getParameterTypes().get(i)))
-					return false;
-			}
-			return true;
-		}
-		return false;
-	}
+
 
 	/* 6. Scope
 	 * -----------------------------------------------------------------------------------
@@ -440,8 +468,18 @@ public class Semantic {
 	
 	public void exitCurrentScope() throws SemanticException {
 		ScopedEntity scoped = scopeStack.pop();
-		if (scoped instanceof Function)
+		if (scoped instanceof Function) {
 			((Function) scoped).validateReturnedType();
+		
+			/* Code generation */
+			codeGenerator.endFunction();
+		}
+	}
+	
+	/* Code generation */
+	public void exitCurrentScopeEndIf() {
+		scopeStack.pop();
+		codeGenerator.endIf();
 	}
 	
 	public ScopedEntity getCurrentScope() {
@@ -486,11 +524,29 @@ public class Semantic {
 				// Checking if value type is valid
 				typeCoersion(type, exp);
 
-				addVariable(new Variable(type, varName, exp.getValue()));
+				addVariable(new Variable(type, varName, exp));
 			}
 		}
 
 		clearBuffers();
+	}
+	
+	public Variable updateVar(Expression expbefr, Expression exp) throws SemanticException {
+		// Expbefr is for sure a variable since its an assignment
+		Variable var = getVariable(expbefr.getName());
+		Type t = typeCoersion(var.getType(), exp);
+
+		// Update var
+		var.setType(t);
+		var.setValue(exp);
+		
+		/* Code generation */
+		Object ob = expressionToObject(exp);
+		if (ob instanceof Function) {
+			var.getValue().setReg("R0");
+		}
+		
+		return var;
 	}
 
 	public void updateVars(String assignment) throws SemanticException {
@@ -506,14 +562,10 @@ public class Semantic {
 				for (int i = 0; i < expBuffer.size(); i++) {
 					Expression expbefr = expBufferBeforeAssign.get(i);
 					Expression exp = expBuffer.get(i);
-
-					// Expbefr is for sure a variable since its an assignment
-					Variable var = getVariable(expbefr.getName());
-					Type t = typeCoersion(var.getType(), exp);
-
-					// Update var
-					var.setType(t);
-					var.setValue(exp.getValue());
+					Variable var = updateVar(expbefr, exp);
+					
+					/* Code generation */
+					codeGenerator.variableDeclaration(var);
 				}
 			}
 		} else {
@@ -523,18 +575,31 @@ public class Semantic {
 			} else {
 				Expression expbefr = expBufferBeforeAssign.get(0);
 				Expression exp = expBuffer.get(0);
-
-				// Expbefr is for sure a variable since its an assignment
-				Variable var = getVariable(expbefr.getName());
-				Type t = typeCoersion(var.getType(), exp);
-
-				// Update var
-				var.setType(t);
-				var.setValue(exp.getValue());
-				}
+				
+				Expression resultExpr = calculateOpAssign(assignment, expbefr, exp);
+				Variable var = updateVar(expbefr, resultExpr);
+				
+				/* Code generation */
+				codeGenerator.variableDeclaration(var);
 			}
+		}
 
 		clearBuffers();
+	}
+
+	private Expression calculateOpAssign(String assignment, Expression expbefr, Expression exp)
+			throws SemanticException {
+		Expression resultExpr = new Expression();
+		if (assignment == "+=") {
+			resultExpr = calculateExpr(expbefr, "+", exp);
+		} else if (assignment == "*=") {
+			resultExpr = calculateExpr(expbefr, "*", exp);
+		} else if (assignment == "-=") {
+			resultExpr = calculateExpr(expbefr, "-", exp);
+		} else if (assignment == "/=") {
+			resultExpr = calculateExpr(expbefr, "/", exp);
+		}
+		return resultExpr;
 	}
 	
 	public Type checkVariableDeclaration(Type variableType, Type expressionType) throws SemanticException {
@@ -586,11 +651,11 @@ public class Semantic {
 	 * */
 	private Expression assignTypeIfNeeded(Expression e) throws SemanticException {
 		Expression newExpression = new Expression(e.getType(), e.getName(), e.getValue());
+		newExpression.setReg(e.getReg());
 		
 		if(newExpression.getType() == Type.UNKNOWN) {
 			try {
 				Function f = functions.get(e.getName());
-				System.out.println(f.getReturnType());
 				newExpression.setType(f.getReturnType());
 				newExpression.setValue(f.getReturnedExpression().getValue());
 			} catch(NullPointerException npe) {
@@ -600,6 +665,27 @@ public class Semantic {
 		}
 		
 		return newExpression;
+	}
+	
+	/* 10. Code Generation Related 
+	 * -----------------------------------------------------------------------------------
+	 * */
+	public void createIfCode() {
+		codeGenerator.createIf();
+	}
+	
+	public void createIfElseCode() {
+		codeGenerator.createIfElse();
+	}
+	
+	public void createElseCode() {
+		codeGenerator.createElse();
+	}
+	
+	public void functionCallCode(Expression expr) {
+		System.out.println("Call " + expr);
+		if (functions.containsKey(expr.getName()))
+			codeGenerator.addFunctionCall(functions.get(expr.getName()));
 	}
 
 }

@@ -1,0 +1,20 @@
+100: LD SP, #4000
+108: LD R1, #0
+116: ST a, R1
+124: LD R2, #0
+132: ST b, R2
+140: LD R3, #0
+148: ST c, R3
+156: LD R4, #0
+164: ST d, R4
+172: LD R5, #0
+180: ST e, R5
+
+function main
+1000: MUL R6, R2, R3
+1008: MUL R7, R5, #2
+1016: DIV R8, R7, #3
+1024: MUL R9, R8, R1
+1032: MOD R10, R9, #3
+1040: ADD R11, R6, R10
+1048: ST a, R11

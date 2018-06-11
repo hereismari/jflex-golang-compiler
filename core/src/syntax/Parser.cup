@@ -171,7 +171,7 @@ non terminal LabeledStmt, GoStmt, ReturnStmt, BreakStmt, ContinueStmt, GotoStmt;
 non terminal FallthroughStmt, Block, DeferStmt, SelectStmt;
 non terminal CommClause, CommCase, StmtOpt, RecvStmt, RecvStmtAux, RecvStmtAux2;
 
-non terminal IfStmt, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
+non terminal IfStmt, IfStmt2, SimpleStmt2, SimpleStmtAux, IfStmtAux, IfStmtAux2;
 non terminal SimpleStmtSc;
 
 non terminal ForStmt, ForStmtAux, ForClause, RangeClause, SimplesStmtStarAux;
@@ -298,7 +298,7 @@ OperandStar    ::= OperandStar Operand |;
 Operand        ::= Literal:lit                 {: RESULT = lit;  :}
                    | TypeName:tn               {: Expression expTn = new Expression(Type.UNKNOWN, tn.toString(), tn.toString()); RESULT = expTn;  :}
                    | PAR_L Expression:e PAR_R  {: Expression exp = (Expression) e;
-												  exp.setValue("(" + e.toString() + ")");
+												  exp.setValue("(" + exp.getValue() + ")");
 												  RESULT = exp; :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}
@@ -309,7 +309,7 @@ Literal        ::= BasicLit:blit               {: RESULT = blit; :}
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
                    | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
-PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
@@ -476,12 +476,14 @@ AuxTypeList ::= COMMA Type AuxTypeList | ;
 DeferStmt ::= DEFER Expression;
 
 /* ------------------ IfStmt ------------------- */
-IfStmt         ::= IF SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block {: Semantic.getInstance().exitCurrentScope(); :} IfStmtAux;
+IfStmt         ::= IF {: Semantic.getInstance().createIfCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
 SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 
-IfStmtAux      ::=   ELSE IfStmt
-                   | ELSE {: Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScope(); :}
-				   | ;
+IfStmt2         ::= IF {: Semantic.getInstance().createIfElseCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
+
+IfStmtAux      ::=   ELSE IfStmt2
+                   | ELSE {: Semantic.getInstance().createElseCode(); Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScopeEndIf(); :}
+				   |      {: Semantic.getInstance().exitCurrentScopeEndIf(); :};
 
 /* ------------------ SelectStmt ------------------- */
 SelectStmt  ::= SELECT CURLY_L CommClause CURLY_R;

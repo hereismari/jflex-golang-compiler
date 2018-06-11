@@ -1,0 +1,18 @@
+100: LD SP, #4000
+108: MUL R1, #3, #1
+116: MUL R2, #-1, R1
+124: ST y, R2
+132: MUL R3, #-1, R2
+140: ST x, R3
+148: ADD R4, R2, R3
+156: ADD R5, #3, R4
+164: MUL R6, #-1, R5
+172: ST z, R6
+180: LD R7, #true
+188: ST a, R7
+196: NOT R8, R7
+204: NOT R9, R8
+212: NOT R10, R9
+220: ST b, R10
+228: NOT R11, #false
+236: ST c, R11

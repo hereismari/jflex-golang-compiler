@@ -4,11 +4,27 @@ A Golang compiler implementation.
 
 ![](https://www.devteam.space/blog/wp-content/uploads/2017/03/gopher_head-min.png)
 
+## Code generation (portuguese only)
+
+* escopo comum
+   * Realizar checagem de tipos e contextos:
+     - [X] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
+     - [X] Declaração;
+     - [X] Uso de Variáveis;
+     - [X] Comandos de atribuição;
+     - [X] Expressões aritméticas;
+     - [X] literais (inteiros, string, booleanos).
+
+* escopo A
+     - [X] Funções
+     - [X] Expressões relacionais
+     - [X] Comandos condicionais: if-else
+
 ## Semantic Analysis (portuguese only)
 
 * escopo comum
    * Realizar checagem de tipos e contextos:
-     - [x] Tipos existentes (MARIANNE: considerando String, float, int);
+     - [x] Tipos existentes (considerando String, float, int, bool);
      - [X] Abstrações (nome, quantidade e tipos de parâmetros de entrada e tipo de retorno);
      - [X] Declaração;
      - [X] Uso de Variáveis;
@@ -65,3 +81,7 @@ run core/src/syntax/Generator.java
 ### Semantic Analysis
 
 run core/src/semantic/TestSemantic.java
+
+### Code Generation
+
+run core/src/semantic/TestCodeGenerator.java

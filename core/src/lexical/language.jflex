@@ -23,19 +23,19 @@ import syntax.Sym;
     }
   
     private Symbol symbol(int sym) {
-    	System.out.println("Token " + Sym.terminalNames[sym] + ", Line: " + yyline + ", size:" + yylength());
+    	//System.out.println("Token " + Sym.terminalNames[sym] + ", Line: " + yyline + ", size:" + yylength());
       	return symbolFactory.newSymbol("sym", sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
   	}
   
   	private Symbol symbol(int sym, Object val) {
-  		System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
+  		//System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
 		Location left = new Location(yyline+1,yycolumn+1,yychar);
 		Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
 		return symbolFactory.newSymbol("sym", sym, left, right,val);
   	}
   	
     private Symbol symbol(int sym, Object val,int buflength) {
-        System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
+        //System.out.println("Token (" + Sym.terminalNames[sym] + ", " + val +  ") , Line: " + yyline + ", size:" + yylength());
         Location left = new Location(yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
         Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
         return symbolFactory.newSymbol("sym", sym, left, right,val);
@@ -101,7 +101,7 @@ StringLit            = {RawStringLit} | {IntStringLit}
 
 // White space and comments
 WhiteSpace     = {Newline} | [ \t\f]
-LineComment    = "//"({UnicodeChar} | "||")*{Newline}?
+LineComment    = "//"({UnicodeChar} | "|" | "^" | "*")*{Newline}?
 GeneralComment = "/*" ([^*] | "*" + [^*/])* "*" + "/"
 
 Identifier     = {Letter}({Letter} | {UnicodeDigit})*
