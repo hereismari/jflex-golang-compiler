@@ -364,7 +364,6 @@ public class Semantic {
 	 * -----------------------------------------------------------------------------------
 	 * */
 	public void createNewFunction(String functionName) throws SemanticException {
-		
 		if(variables.containsKey(functionName)) {
 			throwSemanticException(functionName + " redeclared in this block.");
 		}
@@ -390,7 +389,6 @@ public class Semantic {
 	}
 	
 	public void FunctionAddReturnedExpression(Expression e) throws SemanticException {
-
 		Function f = null;
 		for(int i = scopeStack.size()-1; i >= 0; i--) {
 			try {
@@ -451,7 +449,7 @@ public class Semantic {
 				
 				
 				/* Code generation: loading arguments in parameters registers */
-				codeGenerator.addCodeLoading(parameters.get(i), e); 
+				codeGenerator.addCodeLoading(parameters.get(i), assignTypeIfNeeded(e)); 
 			}
 			
 		} catch (NullPointerException e) {
@@ -533,6 +531,7 @@ public class Semantic {
 	}
 	
 	public Variable updateVar(Expression expbefr, Expression exp) throws SemanticException {
+		exp = assignTypeIfNeeded(exp);
 		// Expbefr is for sure a variable since its an assignment
 		Variable var = getVariable(expbefr.getName());
 		Type t = typeCoersion(var.getType(), exp);
@@ -659,9 +658,12 @@ public class Semantic {
 				Function f = functions.get(e.getName());
 				newExpression.setType(f.getReturnType());
 				newExpression.setValue(f.getReturnedExpression().getValue());
+				newExpression.setReg(f.getReturnedExpression().getReg());
 			} catch(NullPointerException npe) {
 				Variable var = getVariable(e.getName());
 				newExpression.setType(var.getType());
+				newExpression.setValue(var.getValue());
+				newExpression.setReg(var.getValue().getReg());
 			}
 		}
 		

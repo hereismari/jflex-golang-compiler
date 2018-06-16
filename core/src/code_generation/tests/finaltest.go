@@ -1,17 +1,19 @@
 package name;
 
-var a int = 10;
-var b int = 2;
+var (
+  a, b int;
+);
 
-func factorial(x int) int {
+
+func factorial(x int, y int) int {
   if (x <= 1) {
     return 1;
   } else {
-    return factorial#(x-1) * x;
+    return factorial#(x-1, x-2) * x;
   };
 };
 
-/*
+
 func block() bool {
     if a > b {
         return true && false;
@@ -26,7 +28,7 @@ func block() bool {
       a = a / b;
     } else if (b > 3) {
         a = 3;
-        b = factorial#(a) * a;
+        b = factorial#(a, b) * a;
     } else {
         return false;
     };
@@ -34,7 +36,7 @@ func block() bool {
 
 
 func main() {
-  a += 2;
-  a = factorial#(a);
+  a = b;
+  a = factorial#(a, a);
   block#();
-};*/
+};
