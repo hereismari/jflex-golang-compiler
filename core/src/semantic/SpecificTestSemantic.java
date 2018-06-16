@@ -51,7 +51,7 @@ public class SpecificTestSemantic {
 	public static void main(String[] args) throws Exception {
 		ComplexSymbolFactory csf = new ComplexSymbolFactory();
 		
-		String filePath = getAbsolutePath("/core/src/semantic/tests/finaltest.go");
+		String filePath = getAbsolutePath("/core/src/code_generation/tests/finaltest.go");
 		parse(filePath, csf);
 
 		System.out.println("----------------------------------");
