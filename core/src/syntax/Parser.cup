@@ -302,14 +302,14 @@ Operand        ::= Literal:lit                 {: RESULT = lit;  :}
 												  RESULT = exp; :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}
-				           | FunctionLit               // BasicLit removed
+				   | FunctionLit               // BasicLit removed
                    | BooleanLit:bolit          {: RESULT = bolit; :};
  
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
                    | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
-PrimaryExpr    ::= Operand:op                                 {: RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); :}
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 

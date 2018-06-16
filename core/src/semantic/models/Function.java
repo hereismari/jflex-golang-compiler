@@ -93,7 +93,7 @@ public class Function extends ScopedEntity {
 		for(Variable v: parameters) {
 			if(v.getType() == Type.UNKNOWN) {
 				v.setType(type);
-				cg.variableDeclaration(v);
+				cg.parameterDeclaration(v);
 			}
 		}	
 	}

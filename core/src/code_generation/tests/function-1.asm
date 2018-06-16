@@ -11,9 +11,9 @@ function x
 1040: BR *0(SP)
 
 function main
-1348: ADD SP, SP, #xsize
-1356: ST *SP, #1372
-1364: BR #1000
-1372: SUB SP, SP, #xsize
-1380: LD R6, #1
-1388: ST y, R6
+4048: ADD SP, SP, #xsize
+4056: ST *SP, #4072
+4064: BR #1000
+4072: SUB SP, SP, #xsize
+4080: LD R6, #1
+4088: ST y, R6

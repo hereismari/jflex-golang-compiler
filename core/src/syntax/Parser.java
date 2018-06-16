@@ -2668,7 +2668,7 @@ class CUP$Parser$actions {
 		int opleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int opright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		Object op = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); 
+		 RESULT = op;   
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("PrimaryExpr",74, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

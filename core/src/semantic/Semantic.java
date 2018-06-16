@@ -440,20 +440,26 @@ public class Semantic {
 			}
 
 			Function fexpr = functions.get(expr.getName());
-			List<Type> parameters = fexpr.getParameterTypes();
-			
+			List<Variable> parameters = fexpr.getParameters();
 			if(parameters.size() != expBuffer.size()) {
 				throwSemanticException("Function " + fexpr.getName() + " receives " + parameters.size() + " parameters. " + expBuffer.size() + " parameters found instead.");
 			}
 			
 			for(int i = 0; i < expBuffer.size(); i++) {
 				Expression e = expBuffer.get(i);
-				typeCoersion(parameters.get(i), e);
+				typeCoersion(parameters.get(i).getType(), e);
+				
+				
+				/* Code generation: loading arguments in parameters registers */
+				codeGenerator.addCodeLoading(parameters.get(i), e); 
 			}
 			
 		} catch (NullPointerException e) {
 			throwSemanticException("Function " + expr.getName() + " does not exist.");
 		}
+		
+		/* Code generation: making function call */
+		functionCallCode(expr.getName()); 
 		
 		expBuffer.clear();
 	}
@@ -677,10 +683,10 @@ public class Semantic {
 		codeGenerator.createElse();
 	}
 	
-	public void functionCallCode(Expression expr) {
-		System.out.println("Call " + expr);
-		if (functions.containsKey(expr.getName()))
-			codeGenerator.addFunctionCall(functions.get(expr.getName()));
+	public void functionCallCode(String exprName) {
+		System.out.println("Call " + exprName);
+		if (functions.containsKey(exprName))
+			codeGenerator.addFunctionCall(functions.get(exprName));
 	}
 
 }

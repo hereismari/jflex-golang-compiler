@@ -3,6 +3,15 @@ package name;
 var a int = 10;
 var b int = 2;
 
+func factorial(x int) int {
+  if (x <= 1) {
+    return 1;
+  } else {
+    return factorial#(x-1) * x;
+  };
+};
+
+/*
 func block() bool {
     if a > b {
         return true && false;
@@ -12,23 +21,20 @@ func block() bool {
             return false;
         };
     } else if (b > 3) {
+      a += 2;
+      b += 2;
+      a = a / b;
     } else if (b > 3) {
         a = 3;
+        b = factorial#(a) * a;
     } else {
-    
+        return false;
     };
 };
 
-func factorial(x int) int {
-  if (x <= 1) {
-    return 1;
-  } else {
-    return factorial#(x-1) * x;
-  };
-};
 
 func main() {
   a += 2;
   a = factorial#(a);
   block#();
-};
+};*/

@@ -9,9 +9,9 @@ function x
 1024: BR *0(SP)
 
 function main
-1332: ADD SP, SP, #xsize
-1340: ST *SP, #1356
-1348: BR #1000
-1356: SUB SP, SP, #xsize
-1364: ST y, R0
-1372: BR *0(SP)
+4032: ADD SP, SP, #xsize
+4040: ST *SP, #4056
+4048: BR #1000
+4056: SUB SP, SP, #xsize
+4064: ST y, R0
+4072: BR *0(SP)
