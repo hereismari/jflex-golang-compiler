@@ -15,57 +15,6 @@ import syntax.Parser;
 
 
 public class TestCodeGenerator {
-	
-	private static String removeExtension(String filename) {
-		if (filename.indexOf(".") > 0) {
-		   return filename.substring(0, filename.lastIndexOf("."));
-		} else {
-		   return filename;
-		}
-	}
-	
-
-	private static String getExtension(String filename) {
-		if (filename.indexOf(".") > 0) {
-		   return filename.substring(filename.lastIndexOf(".") + 1);
-		} else {
-		   return "";
-		}
-	}
-
-	private static void parse(String sourceCode, ComplexSymbolFactory csf) throws Exception {
-		
-		Semantic.getInstance().clear();
-		Semantic.getInstance().getCodeGenerator().init();
-		
-		boolean exception = false;
-		
-		try {
-			FileInputStream stream = new FileInputStream(sourceCode);
-			Reader reader = new InputStreamReader(stream);
-	
-			Lexer lexer = new Lexer(reader, csf);
-			// start parsing
-			Parser p = new Parser(lexer, csf);
-			System.out.println("Parsing: " + sourceCode);
-			p.parse();
-			System.out.println("Parsing finished!");
-		} catch (SemanticException e) {
-			e.printStackTrace();
-			System.err.println(e.getMessage());
-			
-			if(!sourceCode.contains("FAIL")) {
-				throw new Exception(sourceCode + " was not parsed correctly but it should!");
-			}
-			
-			exception = true;
-		}
-		
-		if(sourceCode.contains("FAIL") && !exception) {
-			throw new Exception(sourceCode + " should fail but it was parsed correctly :/");
-		}
-	}
-	
 	public static void main(String[] args) throws Exception {
 		ComplexSymbolFactory csf = new ComplexSymbolFactory();
 		
@@ -77,9 +26,9 @@ public class TestCodeGenerator {
 		
 		for (int i = 0; i < listOfFiles.length; i++) {
 			String filename = listOfFiles[i].getName();
-			if (listOfFiles[i].isFile() && getExtension(filename).equals("go")) {
-				parse(rootPath + filename, csf);
-				String outputFilename = outputPath + removeExtension(filename) + ".asm";
+			if (listOfFiles[i].isFile() && SpecificTestCodeGenerator.getExtension(filename).equals("go")) {
+				SpecificTestCodeGenerator.parse(rootPath + filename, csf);
+				String outputFilename = outputPath + SpecificTestCodeGenerator.removeExtension(filename) + ".asm";
 				Semantic.getInstance().getCodeGenerator().generateFinalAssemblyCode(outputFilename);
 			}
 		}
