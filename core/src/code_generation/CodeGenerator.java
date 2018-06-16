@@ -283,7 +283,7 @@ public class CodeGenerator {
     
     public void endFunction() {
     	inFunctionScope = false;
-    	labelsFunction += 300;
+    	labelsFunction += 3000;
     }
     
     public void addFunctionCall(Function f) {

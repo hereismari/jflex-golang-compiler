@@ -470,7 +470,6 @@ public class Semantic {
 		ScopedEntity scoped = scopeStack.pop();
 		if (scoped instanceof Function) {
 			((Function) scoped).validateReturnedType();
-		
 			/* Code generation */
 			codeGenerator.endFunction();
 		}
@@ -481,11 +480,7 @@ public class Semantic {
 		scopeStack.pop();
 		codeGenerator.endIf();
 	}
-	
-	public ScopedEntity getCurrentScope() {
-		return scopeStack.peek();
-	}
-	
+
 	/* 7. If Else 
 	 * -----------------------------------------------------------------------------------
 	 * */
