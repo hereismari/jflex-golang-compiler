@@ -26,10 +26,10 @@ function plusPlus
 4160: BR #4176
 4168: LD R8, #false
 4176: ST x, R8
-4184: ADD SP, SP, #alwaysBe1size
+4184: ADD SP, SP, #plusPlussize
 4192: ST *SP, #4208
 4200: BR #1000
-4208: SUB SP, SP, #alwaysBe1size
+4208: SUB SP, SP, #plusPlussize
 4216: SUB R9, #1, R0
 4224: BGEZ R9, #4288
 4232: LD R10, #10

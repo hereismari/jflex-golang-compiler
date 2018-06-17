@@ -11,9 +11,8 @@
 180: ST e, R5
 
 function main
-1000: LD R6, b
-1008: ST a, R6
-1016: ADD R7, R2, R3
-1024: ST a, R7
-1032: ADD R8, R7, R5
-1040: ST d, R8
+1000: ST a, R2
+1008: ADD R6, R2, R3
+1016: ST a, R6
+1024: ADD R7, R6, R5
+1032: ST d, R7

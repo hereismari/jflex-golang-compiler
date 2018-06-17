@@ -446,8 +446,6 @@ public class Semantic {
 			for(int i = 0; i < expBuffer.size(); i++) {
 				Expression e = expBuffer.get(i);
 				typeCoersion(parameters.get(i).getType(), e);
-				
-				
 				/* Code generation: loading arguments in parameters registers */
 				codeGenerator.addCodeLoading(parameters.get(i), assignTypeIfNeeded(e)); 
 			}

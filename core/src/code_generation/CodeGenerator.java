@@ -25,7 +25,9 @@ public class CodeGenerator {
     /* Memory indicator for functions. */
     private Integer labelsFunction;
     private List<String> codeFunctions;
+
     // Hack to know if code is inside function or not
+    private String currFunctionName;
     private boolean inFunctionScope;
     
     /* String that stores the generated assembly code. */
@@ -70,6 +72,7 @@ public class CodeGenerator {
         
         labelsFunction = 992;
     	inFunctionScope = false;
+    	currFunctionName = "";
     	codeFunctions = new ArrayList<>();
     }
     
@@ -284,6 +287,7 @@ public class CodeGenerator {
     public void createFunction(Function f) {
     	codeFunctions.add("function " + f.getName() + "\n");
     	inFunctionScope = true;
+    	currFunctionName = f.getName();
     	f.setLabels(labelsFunction + 8);
     }
 
@@ -303,10 +307,10 @@ public class CodeGenerator {
     }
     
     public void addFunctionCall(Function f) {
-    	addCode("ADD SP, SP, #" + f.getName() + "size");
+    	addCode("ADD SP, SP, #" + currFunctionName + "size");
     	addCode("ST *SP, ", 16);
     	addCode("BR #" + f.getLabels());
-    	addCode("SUB SP, SP, #" + f.getName() + "size");
+    	addCode("SUB SP, SP, #" + currFunctionName + "size");
     }
 
 	private void addFunctionsToCode() {
