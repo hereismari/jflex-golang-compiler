@@ -4,3 +4,9 @@
 124: MUL R2, #3, R1
 132: ADD R3, #1, R2
 140: ST x, R3
+148: SUB R4, R1, R3
+156: BGEZ R4, #180
+164: LD R4, #true
+172: BR #188
+180: LD R4, #false
+188: ST w, R4
