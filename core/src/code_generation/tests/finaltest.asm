@@ -53,10 +53,10 @@ function block
 4344: ST a, R17
 4352: LD R3, R14
 4360: LD R4, R17
-4368: ADD SP, SP, #factorialsize
+4368: ADD SP, SP, #blocksize
 4376: ST *SP, #4392
 4384: BR #1000
-4392: SUB SP, SP, #factorialsize
+4392: SUB SP, SP, #blocksize
 4400: MUL R18, R0, R17
 4408: ST b, R18
 4416: BR #4440
@@ -67,12 +67,12 @@ function main
 7440: ST a, R18
 7448: LD R3, R18
 7456: LD R4, R18
-7464: ADD SP, SP, #factorialsize
+7464: ADD SP, SP, #mainsize
 7472: ST *SP, #7488
 7480: BR #1000
-7488: SUB SP, SP, #factorialsize
+7488: SUB SP, SP, #mainsize
 7496: ST a, R0
-7504: ADD SP, SP, #blocksize
+7504: ADD SP, SP, #mainsize
 7512: ST *SP, #7528
 7520: BR #4144
-7528: SUB SP, SP, #blocksize
+7528: SUB SP, SP, #mainsize
