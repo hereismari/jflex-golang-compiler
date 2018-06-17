@@ -1,0 +1,78 @@
+100: LD SP, #4000
+108: LD R1, #0
+116: ST a, R1
+124: LD R2, #0
+132: ST b, R2
+
+function factorial
+1000: ST y, R3
+1008: ST x, R4
+1016: SUB R5, R4, #1
+1024: BGZ R5, #1056
+1032: LD R0, #1
+1040: BR *0(SP)
+1048: BR #1144
+1056: SUB R6, R4, #1
+1064: SUB R7, R4, #2
+1072: LD R3, R7
+1080: LD R4, R6
+1088: ADD SP, SP, #factorialsize
+1096: ST *SP, #1112
+1104: BR #1000
+1112: SUB SP, SP, #factorialsize
+1120: MUL R8, R0, R4
+1128: LD R0, R8
+1136: BR *0(SP)
+
+function block
+4144: SUB R9, R1, R2
+4152: BLEZ R9, #4248
+4160: AND R10, #true, #false
+4168: LD R0, R10
+4176: BR *0(SP)
+4184: SUB R11, #1, #2
+4192: BLTZ R11, #4224
+4200: LD R0, #false
+4208: BR *0(SP)
+4216: BR #4240
+4224: LD R0, #false
+4232: BR *0(SP)
+4240: BR #4440
+4248: SUB R12, R2, #3
+4256: BLEZ R12, #4320
+4264: ADD R13, R1, #2
+4272: ST a, R13
+4280: ADD R14, R2, #2
+4288: ST b, R14
+4296: DIV R15, R13, R14
+4304: ST a, R15
+4312: BR #4440
+4320: SUB R16, R14, #3
+4328: BLEZ R16, #4424
+4336: LD R17, #3
+4344: ST a, R17
+4352: LD R3, R14
+4360: LD R4, R17
+4368: ADD SP, SP, #factorialsize
+4376: ST *SP, #4392
+4384: BR #1000
+4392: SUB SP, SP, #factorialsize
+4400: MUL R18, R0, R17
+4408: ST b, R18
+4416: BR #4440
+4424: LD R0, #false
+4432: BR *0(SP)
+
+function main
+7440: ST a, R18
+7448: LD R3, R18
+7456: LD R4, R18
+7464: ADD SP, SP, #factorialsize
+7472: ST *SP, #7488
+7480: BR #1000
+7488: SUB SP, SP, #factorialsize
+7496: ST a, R0
+7504: ADD SP, SP, #blocksize
+7512: ST *SP, #7528
+7520: BR #4144
+7528: SUB SP, SP, #blocksize

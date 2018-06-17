@@ -364,7 +364,6 @@ public class Semantic {
 	 * -----------------------------------------------------------------------------------
 	 * */
 	public void createNewFunction(String functionName) throws SemanticException {
-		
 		if(variables.containsKey(functionName)) {
 			throwSemanticException(functionName + " redeclared in this block.");
 		}
@@ -390,7 +389,6 @@ public class Semantic {
 	}
 	
 	public void FunctionAddReturnedExpression(Expression e) throws SemanticException {
-
 		Function f = null;
 		for(int i = scopeStack.size()-1; i >= 0; i--) {
 			try {
@@ -440,20 +438,26 @@ public class Semantic {
 			}
 
 			Function fexpr = functions.get(expr.getName());
-			List<Type> parameters = fexpr.getParameterTypes();
-			
+			List<Variable> parameters = fexpr.getParameters();
 			if(parameters.size() != expBuffer.size()) {
 				throwSemanticException("Function " + fexpr.getName() + " receives " + parameters.size() + " parameters. " + expBuffer.size() + " parameters found instead.");
 			}
 			
 			for(int i = 0; i < expBuffer.size(); i++) {
 				Expression e = expBuffer.get(i);
-				typeCoersion(parameters.get(i), e);
+				typeCoersion(parameters.get(i).getType(), e);
+				
+				
+				/* Code generation: loading arguments in parameters registers */
+				codeGenerator.addCodeLoading(parameters.get(i), assignTypeIfNeeded(e)); 
 			}
 			
 		} catch (NullPointerException e) {
 			throwSemanticException("Function " + expr.getName() + " does not exist.");
 		}
+		
+		/* Code generation: making function call */
+		functionCallCode(expr.getName()); 
 		
 		expBuffer.clear();
 	}
@@ -470,7 +474,6 @@ public class Semantic {
 		ScopedEntity scoped = scopeStack.pop();
 		if (scoped instanceof Function) {
 			((Function) scoped).validateReturnedType();
-		
 			/* Code generation */
 			codeGenerator.endFunction();
 		}
@@ -481,11 +484,7 @@ public class Semantic {
 		scopeStack.pop();
 		codeGenerator.endIf();
 	}
-	
-	public ScopedEntity getCurrentScope() {
-		return scopeStack.peek();
-	}
-	
+
 	/* 7. If Else 
 	 * -----------------------------------------------------------------------------------
 	 * */
@@ -532,6 +531,7 @@ public class Semantic {
 	}
 	
 	public Variable updateVar(Expression expbefr, Expression exp) throws SemanticException {
+		exp = assignTypeIfNeeded(exp);
 		// Expbefr is for sure a variable since its an assignment
 		Variable var = getVariable(expbefr.getName());
 		Type t = typeCoersion(var.getType(), exp);
@@ -658,9 +658,12 @@ public class Semantic {
 				Function f = functions.get(e.getName());
 				newExpression.setType(f.getReturnType());
 				newExpression.setValue(f.getReturnedExpression().getValue());
+				newExpression.setReg(f.getReturnedExpression().getReg());
 			} catch(NullPointerException npe) {
 				Variable var = getVariable(e.getName());
 				newExpression.setType(var.getType());
+				newExpression.setValue(var.getValue());
+				newExpression.setReg(var.getValue().getReg());
 			}
 		}
 		
@@ -682,10 +685,10 @@ public class Semantic {
 		codeGenerator.createElse();
 	}
 	
-	public void functionCallCode(Expression expr) {
-		System.out.println("Call " + expr);
-		if (functions.containsKey(expr.getName()))
-			codeGenerator.addFunctionCall(functions.get(expr.getName()));
+	public void functionCallCode(String exprName) {
+		System.out.println("Call " + exprName);
+		if (functions.containsKey(exprName))
+			codeGenerator.addFunctionCall(functions.get(exprName));
 	}
 
 }

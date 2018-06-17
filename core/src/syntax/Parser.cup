@@ -302,14 +302,14 @@ Operand        ::= Literal:lit                 {: RESULT = lit;  :}
 												  RESULT = exp; :};
 
 Literal        ::= BasicLit:blit               {: RESULT = blit; :}
-				           | FunctionLit               // BasicLit removed
+				   | FunctionLit               // BasicLit removed
                    | BooleanLit:bolit          {: RESULT = bolit; :};
  
 /* --------------- Expression ------------------ */
 UnaryExpr      ::= PrimaryExpr:pexp                      {: RESULT = pexp; :}
                    | UnaryOp:uop UnaryExpr:uexpr         {: RESULT = Semantic.getInstance().calculateUnaryExpr(uop.toString(), (Expression) uexpr); :};
  
-PrimaryExpr    ::= Operand:op                                 {: RESULT = op; Semantic.getInstance().functionCallCode((Expression) op); :}
+PrimaryExpr    ::= Operand:op                                 {: RESULT = op;   :}
                    | Conversion                               {: RESULT = "";   :}
                    | PrimaryExpr:pexp PrimaryExprOtherOptions {: RESULT = pexp;  Semantic.getInstance().FunctionCheckParameters((Expression)pexp);  :};  // Obs: Missing MethodExpr
 
@@ -394,8 +394,9 @@ Statement ::= Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt |
 TopLevelDeclStar ::= TopLevelDecl SEMICOLON TopLevelDeclStar |;
 TopLevelDecl ::= Declaration | FunctionDecl | MethodDecl;
 
-FunctionDecl ::= FUNC IDENTIFIER:id  {: Semantic.getInstance().createNewFunction(id.toString()); :} Signature FunctionBodyOpt {: Semantic.getInstance().exitCurrentScope(); :} ;
-FunctionBodyOpt ::= Block |;
+FunctionDecl ::= FUNC IDENTIFIER:id  {: Semantic.getInstance().createNewFunction(id.toString()); :} Signature FunctionBodyOpt;
+FunctionBodyOpt ::= Block {: Semantic.getInstance().exitCurrentScope(); :} 
+                    |;
 
 MethodDecl ::= FUNC Parameters IDENTIFIER Signature FunctionBodyOpt;
 Declaration ::= ConstDecl | TypeDecl | VarDecl;
@@ -481,8 +482,8 @@ SimpleStmtAux  ::= HASH SimpleStmt SEMICOLON | ; // HOTFIX HASH
 
 IfStmt2         ::= IF {: Semantic.getInstance().createIfElseCode(); :} SimpleStmtAux Expression:e {: Semantic.getInstance().createIf((Expression) e); :} Block IfStmtAux;
 
-IfStmtAux      ::=   ELSE IfStmt2
-                   | ELSE {: Semantic.getInstance().createElseCode(); Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScopeEndIf(); :}
+IfStmtAux      ::=   ELSE {: Semantic.getInstance().exitCurrentScope(); :} IfStmt2
+                   | ELSE {: Semantic.getInstance().exitCurrentScope(); Semantic.getInstance().createElseCode(); Semantic.getInstance().createElse(); :} Block {: Semantic.getInstance().exitCurrentScopeEndIf(); :}
 				   |      {: Semantic.getInstance().exitCurrentScopeEndIf(); :};
 
 /* ------------------ SelectStmt ------------------- */

@@ -44,7 +44,7 @@ public class CodeGenerator {
     /* File organization:
 	 * 		1. CodeGenerator Basics
 	 * 		2. Registers
-	 * 		3. Variable Declaration
+	 * 		3. Variable and Parameter Declaration
 	 *  	4. Operations
 	 *      5. Adding Code
 	 *      6. Function
@@ -116,7 +116,7 @@ public class CodeGenerator {
         return reg1;
     }
     
-    /* 3. Variable Declaration
+    /* 3. Variable and Parameter Declaration
 	 * -----------------------------------------------------------------------------------
 	 * */
     public void variableDeclaration(Variable var) throws SemanticException {
@@ -130,8 +130,14 @@ public class CodeGenerator {
             addCode("ST " + var.getName() + ", " + reg);
         }
     }
-
     
+    public void parameterDeclaration(Variable var) throws SemanticException {
+        System.out.println("declaring parameter: " + var);
+        var.getValue().setReg(allocateRegister());
+        String reg = var.getValue().getReg().toString();
+        addCode("ST " + var.getName() + ", " + reg);
+    }
+
     /* 4. Operations
 	 * -----------------------------------------------------------------------------------
 	 * */
@@ -248,18 +254,28 @@ public class CodeGenerator {
         e.setReg(allocateRegister());
         
         String value = e.getValue();
-        
         // If name == null it is a literal
         if(e.getName() == null) {
         	value = "#" + value;
         }
         
-        addCode("LD " + e.getReg() +", " + value);
+        addCode("LD " + e.getReg() + ", " + value);
     }
     
     public void addCodeLoading(Variable v) throws SemanticException {
     	v.getValue().setReg(allocateRegister());
-        addCode("LD " + v.getValue().getReg() +", "+ v.getName());
+        addCode("LD " + v.getValue().getReg() + ", " + v.getName());
+    }
+    
+    public void addCodeLoading(Variable v, Expression e) throws SemanticException {
+    	String value;
+    	// If name == null it is a literal
+        if(e.getName() == null) {
+        	value = "#" + e.getValue();
+        } else {
+        	value = e.getReg();
+        }
+    	addCode("LD " + v.getValue().getReg() + ", " + value);
     }
     
     /* 6. Function
@@ -270,7 +286,7 @@ public class CodeGenerator {
     	inFunctionScope = true;
     	f.setLabels(labelsFunction + 8);
     }
-    
+
     public void addReturnCode(Expression e) {
     	if(e.getReg() != null) {
     		addCode("LD R0, " + e.getReg());
@@ -283,7 +299,7 @@ public class CodeGenerator {
     
     public void endFunction() {
     	inFunctionScope = false;
-    	labelsFunction += 300;
+    	labelsFunction += 3000;
     }
     
     public void addFunctionCall(Function f) {

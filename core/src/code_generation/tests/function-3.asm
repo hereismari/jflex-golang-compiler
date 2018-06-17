@@ -1,0 +1,18 @@
+100: LD SP, #4000
+
+function factorial
+1000: ST x, R1
+1008: SUB R2, R1, #1
+1016: BGZ R2, #1048
+1024: LD R0, #1
+1032: BR *0(SP)
+1040: BR #1120
+1048: SUB R3, R1, #1
+1056: LD R1, R3
+1064: ADD SP, SP, #factorialsize
+1072: ST *SP, #1088
+1080: BR #1000
+1088: SUB SP, SP, #factorialsize
+1096: MUL R4, R0, R1
+1104: LD R0, R4
+1112: BR *0(SP)
