@@ -563,7 +563,7 @@ Result         ::= HASH PAR_L AuxResult2 PAR_R // HOTFIX HASH
                   | TypeLit 
                   | TypeName:tn   {:    :};   
 AuxResult2     ::= Identifier AuxResult3 | TypeLit | PAR_L Type PAR_R;
-AuxResult3     ::= IdentifierStar3 | DOT Identifier;
+AuxResult3     ::= IdentifierStar2 | DOT Identifier;
 
 Parameters          ::= PAR_L AuxParameters1 PAR_R;
 AuxParameters1      ::= ParameterList
@@ -584,7 +584,8 @@ IdentifierListParam ::= Identifier:id IdentifierStar2:t        {: :};  // includ
 // IdentifierStar3     ::= IdentifierStar2 |;
 IdentifierStar2     ::= COMMA Identifier:id IdentifierStar2:t  {:  RESULT = t; :}
                         | ELLIPSIS Type ParameterDeclStar
-                        | Type:t ParameterDeclStar             {:  :};
+                        | Type:t ParameterDeclStar             {:  :}
+                        |;
 //IdentifierStar4     ::= IdentifierListParam | TypeNoIdentifier; // Type
 
 FuncIdentifierList     ::= Identifier FuncIdentifierListAux1;
