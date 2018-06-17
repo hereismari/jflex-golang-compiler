@@ -28,10 +28,12 @@ func block() bool {
       a = a / b;
     } else if (b > 3) {
         a = 3;
-        b = factorial#(a, b) * a;
+        b = factorial#(a, b + 1) * a;
     } else {
         return false;
     };
+    
+    return block#();
 };
 
 

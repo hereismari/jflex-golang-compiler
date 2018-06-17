@@ -1,11 +1,12 @@
 package main;
 
+var y int;
+
 func x() { 
-  var y int = 1 + 2 * 3 + 4 * 5;
+  var y int = 1 + 2 * 3 + 4 * 5 * y;
   return; 
 };
 
-var y int;
 
 func main() {
   x#();

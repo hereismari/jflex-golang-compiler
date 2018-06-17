@@ -11,8 +11,8 @@ func block() bool {
         } else {
             return false;
         };
-    } else if (b > 3) {
-    } else if (b > 3) {
+    } else if (b != 3) {
+    } else if (b == 3) {
         a = 3;
     } else {
     
