@@ -46,7 +46,7 @@ import syntax.Sym;
 	}
 	
 	private void reportError(String invalidPattern, int line, int column) {
-		System.err.println("Lexical error: " + invalidPattern + ", line: " + line + ", column: " + column);
+		throw new RuntimeException("Lexical error: " + invalidPattern + ", line: " + line + ", column: " + column);
 	}
 	
 	
