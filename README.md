@@ -1,8 +1,8 @@
 # GoCompiler
 
-A Golang compiler implementation.
+A Golang compiler implemented using JFlex + Cup.
 
-![](https://www.devteam.space/blog/wp-content/uploads/2017/03/gopher_head-min.png)
+![](https://cdn-images-1.medium.com/max/480/1*vHUiXvBE0p0fLRwFHZuAYw.gif)
 
 ## Code generation (portuguese only)
 
